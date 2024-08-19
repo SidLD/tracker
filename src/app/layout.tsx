@@ -2,9 +2,8 @@ import "@/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
-
+import SessionProviderWrapper from "@/lib/SessionProviderWrapper";
 import { TRPCReactProvider } from "@/trpc/react";
-
 export const metadata: Metadata = {
   title: "Tracker",
   description: "Employee Tracker",
@@ -17,7 +16,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
       <body>
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+        <TRPCReactProvider>
+            <SessionProviderWrapper>
+              {children}
+            </SessionProviderWrapper>
+        </TRPCReactProvider>
       </body>
     </html>
   );
