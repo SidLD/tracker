@@ -4,6 +4,7 @@ import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 import SessionProviderWrapper from "@/lib/SessionProviderWrapper";
 import { TRPCReactProvider } from "@/trpc/react";
+import { redirect } from "next/navigation";
 export const metadata: Metadata = {
   title: "Tracker",
   description: "Employee Tracker",
