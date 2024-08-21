@@ -55,7 +55,7 @@ export function LoginCard() {
           title : "Success login",
           description : "Welcome user."
         })
-        router.push("/")
+        router.push("/dashboard")
       }
     }).finally(()=>{
       setLoginLoading(false)
