@@ -282,47 +282,80 @@ const Page = () => {
           </div>
         </CardHeader>
         <CardContent className="p-6 text-sm">
-          <div className="grid gap-3">
-            <div className="font-semibold">Date: 08/21/2024</div>
-            <dl className="grid gap-3">
-              <div className="flex items-center justify-between">
-                <dt className="flex items-center gap-1 text-muted-foreground">
-                  <CreditCard className="h-4 w-4" />
-                  Status
-                </dt>
-                <dd>****</dd>
-                
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="flex items-center gap-1 text-muted-foreground">
-                  <CreditCard className="h-4 w-4" />
-                  Location
-                </dt>
-                <dd>****</dd>
-              </div>
-            </dl>
-          </div>
+              <Form {...form}>
+                    <form onSubmit={onSubmit}>
+                      <FormField
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                            <FormItem className=" relative">
+                            <FormLabel>Title</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Select Title" {...field} />
+                            </FormControl>
+                            <FormMessage className=" absolute -bottom-5"/>
+                            </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="firstName"
+                        render={({ field }) => (
+                            <FormItem className=" relative">
+                            <FormLabel>Title</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Select Title" {...field} />
+                            </FormControl>
+                            <FormMessage className=" absolute -bottom-5"/>
+                            </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="middleName"
+                        render={({ field }) => (
+                            <FormItem className=" relative">
+                            <FormLabel>Title</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Select Title" {...field} />
+                            </FormControl>
+                            <FormMessage className=" absolute -bottom-5"/>
+                            </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="lastName"
+                        render={({ field }) => (
+                            <FormItem className=" relative">
+                            <FormLabel>Title</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Select Title" {...field} />
+                            </FormControl>
+                            <FormMessage className=" absolute -bottom-5"/>
+                            </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="role"
+                        render={({ field }) => (
+                            <FormItem className=" relative">
+                            <FormLabel>Title</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Select Title" {...field} />
+                            </FormControl>
+                            <FormMessage className=" absolute -bottom-5"/>
+                            </FormItem>
+                        )}
+                      />
+                    </form>
+                </Form>
         </CardContent>
         <CardFooter className="flex flex-row items-center border-t bg-muted/50 px-6 py-3">
           <div className="text-xs text-muted-foreground">
             Updated <time dateTime="2023-11-23">November 23, 2023</time>
           </div>
-          <Pagination className="ml-auto mr-0 w-auto">
-            <PaginationContent>
-              <PaginationItem>
-                <Button size="icon" variant="outline" className="h-6 w-6">
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                  <span className="sr-only">Previous Order</span>
-                </Button>
-              </PaginationItem>
-              <PaginationItem>
-                <Button size="icon" variant="outline" className="h-6 w-6">
-                  <ChevronRight className="h-3.5 w-3.5" />
-                  <span className="sr-only">Next Order</span>
-                </Button>
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
         </CardFooter>
       </Card>
     </div>

@@ -187,7 +187,7 @@ const Page = () => {
         <CardHeader className="flex flex-row items-start bg-muted/50">
           <div className="grid gap-0.5">
             <CardTitle className="group flex items-center gap-2 text-lg">
-              Details
+              History
               <Button
                 size="icon"
                 variant="outline"
@@ -203,6 +203,27 @@ const Page = () => {
         <CardContent className="p-6 text-sm">
           <div className="grid gap-3">
             <div className="font-semibold">Date: 08/21/2024</div>
+            <dl className="grid gap-3">
+              <div className="flex items-center justify-between">
+                <dt className="flex items-center gap-1 text-muted-foreground">
+                  <CreditCard className="h-4 w-4" />
+                  Status
+                </dt>
+                <dd>****</dd>
+                
+              </div>
+              <div className="flex items-center justify-between">
+                <dt className="flex items-center gap-1 text-muted-foreground">
+                  <CreditCard className="h-4 w-4" />
+                  Location
+                </dt>
+                <dd>****</dd>
+              </div>
+            </dl>
+          </div>
+          <Separator className='my-5'/>
+          <div className="grid gap-3">
+            <div className="font-semibold">Date: 08/25/2024</div>
             <dl className="grid gap-3">
               <div className="flex items-center justify-between">
                 <dt className="flex items-center gap-1 text-muted-foreground">
