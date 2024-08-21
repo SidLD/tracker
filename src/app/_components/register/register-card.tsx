@@ -36,7 +36,8 @@ const FormSchema = z.object({
       message: "Username must be at least 8 characters.",
     }),
     extension: z.string().optional(),
-    title: z.string().optional()
+    title: z.string().optional(),
+    role: z.string().optional()
 })
 
 export function RegisterCard() {
@@ -53,6 +54,7 @@ export function RegisterCard() {
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try{
       setSignUpLoading(true)
+      data.role = 1;
       await axios.post('http://localhost:3000/api/user', data)
         .then( async (data: any) => {
           toast({

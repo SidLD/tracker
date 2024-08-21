@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import bcrypt from 'bcrypt';
@@ -37,6 +38,7 @@ register: publicProcedure
         }),
         extension: z.string().optional(),
         title: z.string().optional(),
+        role: z.any()
     }))
     .mutation(async({ ctx, input }) => {
         const userFound = await ctx.db.user.findFirst({
@@ -54,7 +56,8 @@ register: publicProcedure
                 middleName: input.middleName,
                 extension: input.extension,
                 title: input.title,
-                password: hashedPassword
+                password: hashedPassword,
+                roleId: 1
             }
         })
     })

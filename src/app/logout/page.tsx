@@ -5,14 +5,15 @@ import { useEffect } from "react";
 
 const Page = () => {
     const router = useRouter();
-    useEffect(() => {
+    useEffect( () => {
         const logout = async () => {
             await signOut({ redirect: false })
             router.push('/')
         }
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         logout()
     }, [])
-    return (<div>asd</div>);
+    return (<div></div>);
 }
  
 export default Page;

@@ -15,6 +15,7 @@ import {
   Package,
   Package2,
   PanelLeft,
+  Pencil,
   Search,
   Settings,
   ShoppingCart,
@@ -116,7 +117,6 @@ const Page = () => {
   return (
   <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
     <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
-
       <Tabs defaultValue="week">
         <div className="flex items-center">
           <div className="ml-auto flex items-center gap-2">
@@ -269,88 +269,115 @@ const Page = () => {
           <div className="grid gap-0.5">
             <CardTitle className="group flex items-center gap-2 text-lg">
               Details
-              <Button
-                size="icon"
-                variant="outline"
-                className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
-              >
-                <Copy className="h-3 w-3" />
-                <span className="sr-only">Copy Order ID</span>
-              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" className='w-5 mx-1 p-0'>
+                    <Pencil className='' />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Edit User</DialogTitle>
+                  </DialogHeader>
+                    <Form {...form}>
+                        <form onSubmit={onSubmit}>
+                          <FormField
+                            control={form.control}
+                            name="title"
+                            render={({ field }) => (
+                                <FormItem className=" relative">
+                                <FormLabel>Title</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Select Title" {...field} />
+                                </FormControl>
+                                <FormMessage className=" absolute -bottom-5"/>
+                                </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="firstName"
+                            render={({ field }) => (
+                                <FormItem className=" relative">
+                                <FormLabel>Title</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Select Title" {...field} />
+                                </FormControl>
+                                <FormMessage className=" absolute -bottom-5"/>
+                                </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="middleName"
+                            render={({ field }) => (
+                                <FormItem className=" relative">
+                                <FormLabel>Title</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Select Title" {...field} />
+                                </FormControl>
+                                <FormMessage className=" absolute -bottom-5"/>
+                                </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="lastName"
+                            render={({ field }) => (
+                                <FormItem className=" relative">
+                                <FormLabel>Title</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Select Title" {...field} />
+                                </FormControl>
+                                <FormMessage className=" absolute -bottom-5"/>
+                                </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="role"
+                            render={({ field }) => (
+                                <FormItem className=" relative">
+                                <FormLabel>Title</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Select Title" {...field} />
+                                </FormControl>
+                                <FormMessage className=" absolute -bottom-5"/>
+                                </FormItem>
+                            )}
+                          />
+                        </form>
+                    </Form>
+                  <DialogFooter>
+                    <Button type="submit">Confirm</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardTitle>
             <CardDescription>Date: November 23, 2023</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="p-6 text-sm">
-              <Form {...form}>
-                    <form onSubmit={onSubmit}>
-                      <FormField
-                        control={form.control}
-                        name="title"
-                        render={({ field }) => (
-                            <FormItem className=" relative">
-                            <FormLabel>Title</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Select Title" {...field} />
-                            </FormControl>
-                            <FormMessage className=" absolute -bottom-5"/>
-                            </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="firstName"
-                        render={({ field }) => (
-                            <FormItem className=" relative">
-                            <FormLabel>Title</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Select Title" {...field} />
-                            </FormControl>
-                            <FormMessage className=" absolute -bottom-5"/>
-                            </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="middleName"
-                        render={({ field }) => (
-                            <FormItem className=" relative">
-                            <FormLabel>Title</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Select Title" {...field} />
-                            </FormControl>
-                            <FormMessage className=" absolute -bottom-5"/>
-                            </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="lastName"
-                        render={({ field }) => (
-                            <FormItem className=" relative">
-                            <FormLabel>Title</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Select Title" {...field} />
-                            </FormControl>
-                            <FormMessage className=" absolute -bottom-5"/>
-                            </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="role"
-                        render={({ field }) => (
-                            <FormItem className=" relative">
-                            <FormLabel>Title</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Select Title" {...field} />
-                            </FormControl>
-                            <FormMessage className=" absolute -bottom-5"/>
-                            </FormItem>
-                        )}
-                      />
-                    </form>
-                </Form>
+                <div className='grid grid-cols-2'>
+                    <Label>Title</Label>
+                    asd
+                </div>
+                <div className='grid grid-cols-2'>
+                    <Label>First Name</Label>
+                    asd
+                </div>
+                <div className='grid grid-cols-2'>
+                    <Label>Middle Name</Label>
+                    asd
+                </div>
+                <div className='grid grid-cols-2'>
+                    <Label>Last Name</Label>
+                    asd
+                </div>
+                <div className='grid grid-cols-2'>
+                    <Label>Role</Label>
+                    asd
+                </div>
         </CardContent>
         <CardFooter className="flex flex-row items-center border-t bg-muted/50 px-6 py-3">
           <div className="text-xs text-muted-foreground">
