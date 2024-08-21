@@ -11,13 +11,6 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Separator } from "@radix-ui/react-select"
 import { SettingTable } from "./settingTable"
 
@@ -48,7 +41,6 @@ export function RoleCard() {
     <Card className="w-full md:w-2/3">
       <CardHeader>
         <CardTitle>Role List</CardTitle>
-        <CardDescription>Deploy your new project in one-click.</CardDescription>
       </CardHeader>
       <CardContent>
         <SettingTable />
