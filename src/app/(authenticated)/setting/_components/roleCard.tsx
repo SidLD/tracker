@@ -27,7 +27,7 @@ export function RoleCard() {
           <div className="grid w-full items-center gap-4">
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="name">Title</Label>
-              <Input id="name" placeholder="Name of your project" />
+              <Input id="name" placeholder="name" />
             </div>
           </div>
         </form>

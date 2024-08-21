@@ -1,3 +1,4 @@
+'use client'
 import React from 'react'
 import Image from "next/image"
 import Link from "next/link"
@@ -76,8 +77,42 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Label } from '@/components/ui/label'
+import { z } from 'zod'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+
+const formSchema = z.object({
+  title: z.string().optional(),
+  firstName: z.string(),
+  middleName: z.string(),
+  lastName: z.string(),
+  role: z.any(),
+})
 
 const Page = () => {
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: "",
+      firstName:"",
+    },
+  })
+
+  const onSubmit = (e: any) => {
+
+  }
+
   return (
   <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
     <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
@@ -85,14 +120,90 @@ const Page = () => {
       <Tabs defaultValue="week">
         <div className="flex items-center">
           <div className="ml-auto flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 gap-1 text-sm"
-            >
-              <File className="h-3.5 w-3.5" />
-              <span className="sr-only sm:not-sr-only">New Data</span>
-            </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <File className="h-3.5 w-3.5 mr-2" />
+                <span>New Data</span></Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>New User</DialogTitle>
+              </DialogHeader>
+                <Form {...form}>
+                    <form onSubmit={onSubmit}>
+                      <FormField
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                            <FormItem className=" relative">
+                            <FormLabel>Title</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Select Title" {...field} />
+                            </FormControl>
+                            <FormMessage className=" absolute -bottom-5"/>
+                            </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="firstName"
+                        render={({ field }) => (
+                            <FormItem className=" relative">
+                            <FormLabel>Title</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Select Title" {...field} />
+                            </FormControl>
+                            <FormMessage className=" absolute -bottom-5"/>
+                            </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="middleName"
+                        render={({ field }) => (
+                            <FormItem className=" relative">
+                            <FormLabel>Title</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Select Title" {...field} />
+                            </FormControl>
+                            <FormMessage className=" absolute -bottom-5"/>
+                            </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="lastName"
+                        render={({ field }) => (
+                            <FormItem className=" relative">
+                            <FormLabel>Title</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Select Title" {...field} />
+                            </FormControl>
+                            <FormMessage className=" absolute -bottom-5"/>
+                            </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="role"
+                        render={({ field }) => (
+                            <FormItem className=" relative">
+                            <FormLabel>Title</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Select Title" {...field} />
+                            </FormControl>
+                            <FormMessage className=" absolute -bottom-5"/>
+                            </FormItem>
+                        )}
+                      />
+                    </form>
+                </Form>
+              <DialogFooter>
+                <Button type="submit">Confirm</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           </div>
         </div>
         <TabsContent value="week">
