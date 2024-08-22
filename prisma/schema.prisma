@@ -42,20 +42,20 @@ model Records {
 }
 
 model Roles {
-  id        Int   @id
+  id        Int   @id @default(autoincrement())
   name      String 
   user      User[]
   record    Records[]
 }
 
 model Status {
-  id        Int   @id
+  id        Int   @id @default(autoincrement())
   name      String
   record    Records[]
 }
 
 model Locations { 
-  id        Int   @id
+  id        Int   @id @default(autoincrement())
   name      String
   record    Records[]
 }
