@@ -10,9 +10,7 @@ getRole: protectedProcedure
     }),
 createRole: protectedProcedure
     .input(z.object({ 
-        name: z.string().min(3, {
-            message: "name must be at least 5 characters.",
-        })
+        name: z.string()
     }))
     .mutation(async({ ctx, input }) => {
         const roleFound = await ctx.db.roles.findFirst({
