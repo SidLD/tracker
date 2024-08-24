@@ -2,36 +2,36 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
-export const roleRouter = createTRPCRouter({  
-getRole: protectedProcedure
+export const statusRouter = createTRPCRouter({  
+getStatus: protectedProcedure
     .query(async({ ctx, input }) => {
-        const roles = await ctx.db.roles.findMany({
+        const status = await ctx.db.status.findMany({
             where: {
                 NOT: {
                     name: 'admin'
                 }
             }
         })
-        return roles;
+        return status;
     }),
-createRole: protectedProcedure
+createStatus: protectedProcedure
     .input(z.object({ 
         name: z.string()
     }))
     .mutation(async({ ctx, input }) => {
-        const roleFound = await ctx.db.roles.findFirst({
+        const roleFound = await ctx.db.status.findFirst({
         where: { name: input.name}
         })
         if(roleFound){
             throw Error("Role Already Exist")
         }
-        return await ctx.db.roles.create({
+        return await ctx.db.status.create({
             data: {
                 name: input.name,
             }
         })
     }),
-updateRole: protectedProcedure
+updateStatus: protectedProcedure
     .input(z.object({ 
         id: z.any(),
         name: z.string().min(3, {
@@ -39,20 +39,20 @@ updateRole: protectedProcedure
         })
     }))
     .mutation(async({ ctx, input }) => {
-        const roleFound = await ctx.db.roles.findFirst({
+        const roleFound = await ctx.db.status.findFirst({
             where: { id: input.id}
         })
         if(!roleFound){
             throw Error("Role Does not Exist")
         }
-        return await ctx.db.roles.update({
+        return await ctx.db.status.update({
             where: {id: input.id},
             data: {
                 name: input.name,
             }
         })
     }),
-deleteRole: protectedProcedure
+deleteStatus: protectedProcedure
     .input(z.object({ 
         id: z.any(),
         name: z.string().min(3, {
@@ -60,13 +60,13 @@ deleteRole: protectedProcedure
         })
     }))
     .mutation(async({ ctx, input }) => {
-        const roleFound = await ctx.db.roles.findFirst({
+        const roleFound = await ctx.db.status.findFirst({
             where: { name: input.name}
         })
         if(!roleFound){
             throw Error("Role Does not Exist")
         }
-        return await ctx.db.roles.delete({
+        return await ctx.db.status.delete({
             where: {id: input.id},
         })
     }),

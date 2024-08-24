@@ -23,10 +23,14 @@ import { Role } from "@/lib/types/role";
 
 
 const RoleSchema = z.object({
+  id: z.any().optional(),
   name: z.string().min(3, 'Must have atleast 3 length')
 })
 
-export const RoleContext = createContext<Role[]>([]);
+export const RoleContext = createContext<{
+  data: Role[],
+  onSelectRole: any
+} | undefined>(undefined);
 
 export function RoleCard() {
   const {toast} = useToast();
@@ -41,30 +45,69 @@ export function RoleCard() {
   })
 
   const onSelectRole = (role : Role) => {
-    console.log(role, "sda")
     setSelectedRole(role)
   }
 
   const onCreateRole = async (data: z.infer<typeof RoleSchema>) => {
     try {
       setLoading(true)
-      await fetch('/api/role', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+      if(!selectedRole){
+        await fetch('/api/role', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+      }else{
+        await fetch('/api/role', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+      }
       await getRoles()
       toast({
         title: "Success",
         variant: 'default',
         description: ""
       })
+
+      hanldeClearRole()
     } catch (error) {
      console.log(error)  
     }
     setLoading(false)
+  }
+
+  const onDeleteRole = async () => {
+    try {
+      if(selectedRole){
+        setLoading(true)
+          await fetch('/api/role', {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({id: selectedRole.id, name: selectedRole.name}),
+          });
+        await getRoles()
+        toast({
+          title: "Success",
+          variant: 'default',
+          description: ""
+        })
+        hanldeClearRole()
+      }
+    } catch (error) {
+      toast({
+        title: "Fail",
+        variant: 'destructive',
+        description: ""
+      })
+    }
   }
 
   const getRoles = async () => {
@@ -84,9 +127,21 @@ export function RoleCard() {
     }
   };
 
+  const hanldeClearRole = () => {
+    setSelectedRole(null);
+    createRoleForm.setValue('name', '');
+  }
+
   useEffect(() => {
-  getRoles()
+    getRoles()
   }, [])
+
+  useEffect(() => {
+    if(selectedRole){
+      createRoleForm.setValue("name", selectedRole.name)
+      createRoleForm.setValue("id", selectedRole.id)
+    }
+  }, [selectedRole])
 
   return (
     <div className="block md:flex justify-center p-2 gap-2">
@@ -99,6 +154,17 @@ export function RoleCard() {
         </CardHeader>
         <CardContent>
               <div className="grid w-full items-center gap-4">
+                <FormField
+                  control={createRoleForm.control}           
+                  name="id"
+                  render={({ field }) => (
+                      <FormItem className=" relative">
+                      <FormControl>
+                          <Input {...field} type="hidden" />
+                      </FormControl>
+                      </FormItem>
+                  )}
+                  />
                 <FormField
                   control={createRoleForm.control}
                   name="name"
@@ -115,8 +181,11 @@ export function RoleCard() {
               </div>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button variant="outline">Delete</Button>
-          <Button type="submit" disabled={loading}>Save</Button>
+          <Button variant="secondary" onClick={onDeleteRole}>Delete</Button>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="outline" onClick={hanldeClearRole}>Clear</Button>
+            <Button type="submit" disabled={loading}>{selectedRole ? 'Update': 'Save'}</Button>
+          </div>
         </CardFooter>
 
         </form>

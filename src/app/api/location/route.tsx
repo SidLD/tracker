@@ -9,23 +9,23 @@ export type Payload = {
 
 export async function POST (request: NextRequest){
     const payload = await request.json() as Payload
-    const data = await api.role.createRole(payload)
+    const data = await api.location.createLocation(payload)
     return NextResponse.json(data);
 }
 
 export async function GET (request: NextRequest){
-    const data = await api.role.getRole()
+    const data = await api.location.getLocation()
     return NextResponse.json(data);
 }
 
 export async function PUT (request: NextRequest){
     const payload = await request.json() as Payload
-    const data = await api.role.updateRole(payload)
+    const data = await api.location.updateLocation(payload)
     return NextResponse.json(data);
 }
 
 export async function DELETE (request: NextRequest){
     const payload = await request.json() as Payload
-    const data = await api.role.deleteRole(payload)
+    const data = await api.location.deleteLocation(payload)
     return NextResponse.json(data);
 }
