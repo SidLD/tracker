@@ -5,7 +5,13 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 export const roleRouter = createTRPCRouter({  
 getRole: protectedProcedure
     .query(async({ ctx, input }) => {
-        const roles = await ctx.db.roles.findMany({})
+        const roles = await ctx.db.roles.findMany({
+            where: {
+                NOT: {
+                    name: 'admin'
+                }
+            }
+        })
         return roles;
     }),
 createRole: protectedProcedure

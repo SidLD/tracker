@@ -1,9 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 "use client"
 
 import * as React from "react"
 import {
   ColumnDef,
   ColumnFiltersState,
+  Row,
   SortingState,
   VisibilityState,
   flexRender,
@@ -30,79 +34,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Role } from "@/lib/types/role"
+import { RoleContext } from "./roleCard"
 
-const data: Role[] = [
-  {
-    id: "m5gr84i9",
-    role: "Teacher"
-  },
-  {
-    id: "3u1reuv4",
-    role: "Supervisor"
-  },
-  {
-    id: "derv1ws0",
-    role: "Staff"
-  },
-]
 
-export type Role = {
-  id: string
-  role: string
-}
 
-export const columns: ColumnDef<Role>[] = [
-  {
-    id: "id",
-    enableSorting: false,
-    enableHiding: false,
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          ID
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-    cell: ({ row }) => <div className="uppercase">{row.original.id}</div>,
-  },
-  {
-    accessorKey: "role",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Role
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-    cell: ({ row }) => <div className="uppercase">{row.getValue("role")}</div>,
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    header: ({ column }) => {
-      return (
-        <div>Action</div>
-      )
-    },
-    cell: ({ row }) => {
-      const payment = row.original
-
-      return (
-        <Button>Edit</Button>
-      )
-    },
-  },
-]
-
-export function SettingTable() {
+export function RoleTable() {
+  const { data, onSelectRole} = React.useContext(RoleContext);
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -111,8 +49,59 @@ export function SettingTable() {
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
 
+  const columns: ColumnDef<Role>[] = [
+    {
+      id: "id",
+      enableSorting: false,
+      enableHiding: false,
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            ID
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => <div className="uppercase">{row.original.id}</div>,
+    },
+    {
+      accessorKey: "name",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Role
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => <div className="uppercase">{row.getValue("name")}</div>,
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      header: ({ column }) => {
+        return (
+          <div>Action</div>
+        )
+      },
+      cell: ({ row }) => {
+
+        return (
+          <Button onClick={() => {
+            onSelectRole({id: row.original.id, name: row.getValue('name')})}}>Edit</Button>
+        )
+      },
+    },
+  ]
+
   const table = useReactTable({
-    data,
+    data: data,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,

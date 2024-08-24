@@ -14,6 +14,5 @@ export async function POST (request: NextRequest){
 
 export async function GET (request: NextRequest){
     const data = await api.role.getRole()
-    console.log("ret", data)
     return NextResponse.json(data);
 }

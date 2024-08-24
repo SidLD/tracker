@@ -11,14 +11,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@radix-ui/react-select"
-import { SettingTable } from "./settingTable"
+import { RoleTable } from "./roleTable"
 import { useToast } from "@/components/ui/use-toast"
 import { api } from "@/trpc/server"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { useEffect, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { Role } from "@/lib/types/role";
 
 
@@ -26,25 +26,36 @@ const RoleSchema = z.object({
   name: z.string().min(3, 'Must have atleast 3 length')
 })
 
+export const RoleContext = createContext<Role[]>([]);
+
 export function RoleCard() {
   const {toast} = useToast();
   const [roles, setRoles] = useState<Role[]>([]);
+  const [loading, setLoading] = useState(false)
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const createRoleForm = useForm<z.infer<typeof RoleSchema>>({
     resolver: zodResolver(RoleSchema),
     defaultValues: {
       name: ''
     },
   })
+
+  const onSelectRole = (role : Role) => {
+    console.log(role, "sda")
+    setSelectedRole(role)
+  }
+
   const onCreateRole = async (data: z.infer<typeof RoleSchema>) => {
     try {
-      const response = await fetch('/api/role', {
+      setLoading(true)
+      await fetch('/api/role', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
       });
-      console.log("test", response)
+      await getRoles()
       toast({
         title: "Success",
         variant: 'default',
@@ -53,6 +64,7 @@ export function RoleCard() {
     } catch (error) {
      console.log(error)  
     }
+    setLoading(false)
   }
 
   const getRoles = async () => {
@@ -66,14 +78,14 @@ export function RoleCard() {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-      setRoles(await response.json());
+      setRoles(await response.json() as Role[]);
     } catch (error) {
       console.error("Error fetching roles:", error);
     }
   };
 
   useEffect(() => {
-    getRoles()
+  getRoles()
   }, [])
 
   return (
@@ -104,7 +116,7 @@ export function RoleCard() {
         </CardContent>
         <CardFooter className="flex justify-between">
           <Button variant="outline">Delete</Button>
-          <Button type="submit">Save</Button>
+          <Button type="submit" disabled={loading}>Save</Button>
         </CardFooter>
 
         </form>
@@ -116,7 +128,12 @@ export function RoleCard() {
           <CardTitle>Role List</CardTitle>
         </CardHeader>
         <CardContent>
-          <SettingTable />
+          <RoleContext.Provider value={{
+            data: roles,
+            onSelectRole
+          }}>
+            <RoleTable />
+          </RoleContext.Provider>
         </CardContent>
       </Card>
     </div>
