@@ -75,24 +75,14 @@ import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/p
 
 const formSchema = z.object({
   title: z.string().optional(),
-  firstName: z.string(),
-  middleName: z.string(),
-  lastName: z.string(),
-  role: z.any(),
+  firstName: z.string().min(3, 'Min 3'),
+  middleName: z.string().optional(),
+  lastName: z.string().min(3, 'Min 3'),
+  role: z.string(),
 })
 
-const updateSchema = z.object({
-  id: z.string(),
-  title: z.string().optional(),
-  firstName: z.string(),
-  middleName: z.string(),
-  lastName: z.string(),
-  role: z.any(),
-})
 
 const Page = () => {
-  const [selectUser, setSelectUser] = useState<User | null>(null)
-  const [roles, setRoles] = useState<Role[]>([]);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -104,23 +94,11 @@ const Page = () => {
     },
   })
 
-  const updateForm = useForm<z.infer<typeof updateSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      id:"",
-      title: "",
-      firstName:"",
-      middleName: "",
-      lastName: "",
-      role: "",
-    },
-  })
+  console.log(form.formState.errors)
+  const [selectUser, setSelectUser] = useState<User | null>(null)
+  const [roles, setRoles] = useState<Role[]>([]);
 
   const onCreateUser = async (data: z.infer<typeof formSchema>) => {
-    console.log(data)
-  }
-
-  const onUpdateUser = async (data: z.infer<typeof updateSchema>) => {
     console.log(data)
   }
 
@@ -153,7 +131,6 @@ const Page = () => {
           <div className="ml-auto flex items-center gap-2">
           <Dialog>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onCreateUser)}>
                 <DialogTrigger asChild>
                   <Button variant="outline">
                     <File className="h-3.5 w-3.5 mr-2" />
@@ -170,7 +147,7 @@ const Page = () => {
                               <FormItem className=" relative">
                               <FormLabel>Title</FormLabel>
                               <FormControl>
-                                  <Input placeholder="Select Title" {...field} />
+                                  <Input placeholder="Input Title" {...field} />
                               </FormControl>
                               <FormMessage className=" absolute -bottom-5"/>
                               </FormItem>
@@ -183,7 +160,7 @@ const Page = () => {
                               <FormItem className=" relative">
                               <FormLabel>First Name</FormLabel>
                               <FormControl>
-                                  <Input placeholder="Select Title" {...field} />
+                                  <Input placeholder="Input Title" {...field} />
                               </FormControl>
                               <FormMessage className=" absolute -bottom-5"/>
                               </FormItem>
@@ -196,7 +173,7 @@ const Page = () => {
                               <FormItem className=" relative">
                               <FormLabel>Middle Name</FormLabel>
                               <FormControl>
-                                  <Input placeholder="Select Title" {...field} />
+                                  <Input placeholder="Input Title" {...field} />
                               </FormControl>
                               <FormMessage className=" absolute -bottom-5"/>
                               </FormItem>
@@ -209,7 +186,7 @@ const Page = () => {
                               <FormItem className=" relative">
                               <FormLabel>Last Name</FormLabel>
                               <FormControl>
-                                  <Input placeholder="Select Title" {...field} />
+                                  <Input placeholder="Input Title" {...field} />
                               </FormControl>
                               <FormMessage className=" absolute -bottom-5"/>
                               </FormItem>
@@ -238,10 +215,9 @@ const Page = () => {
                           )}
                         />
                         <DialogFooter>
-                          <Button type='submit' >Confirm</Button>
+                          <Button type='submit' onClick={() => onCreateUser}>Confirm</Button>
                         </DialogFooter>
                 </DialogContent>
-              </form>
             </Form>
           </Dialog>
           </div>
@@ -319,22 +295,10 @@ const Page = () => {
                   <DialogHeader>
                     <DialogTitle>Edit User</DialogTitle>
                   </DialogHeader>
-                    <Form {...updateForm}>
-                        <form onSubmit={updateForm.handleSubmit(onUpdateUser)}>
-                        <FormField
-                            control={updateForm.control}
-                            name="id"
-                            render={({ field }) => (
-                                <FormItem className=" relative">
-                                <FormControl>
-                                    <Input type='hidden'  placeholder="Select Title" {...field} />
-                                </FormControl>
-                                <FormMessage className=" absolute -bottom-5"/>
-                                </FormItem>
-                            )}
-                          />
+                    {/* <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onUpdateUser)}>
                           <FormField
-                            control={updateForm.control}
+                            control={form.control}
                             name="title"
                             render={({ field }) => (
                                 <FormItem className=" relative">
@@ -347,7 +311,7 @@ const Page = () => {
                             )}
                           />
                           <FormField
-                            control={updateForm.control}
+                            control={form.control}
                             name="firstName"
                             render={({ field }) => (
                                 <FormItem className=" relative">
@@ -360,7 +324,7 @@ const Page = () => {
                             )}
                           />
                           <FormField
-                            control={updateForm.control}
+                            control={form.control}
                             name="middleName"
                             render={({ field }) => (
                                 <FormItem className=" relative">
@@ -373,7 +337,7 @@ const Page = () => {
                             )}
                           />
                           <FormField
-                            control={updateForm.control}
+                            control={form.control}
                             name="lastName"
                             render={({ field }) => (
                                 <FormItem className=" relative">
@@ -386,7 +350,7 @@ const Page = () => {
                             )}
                           />
                           <FormField
-                          control={updateForm.control}
+                          control={form.control}
                           name="role"
                           render={({ field }) => (
                               <FormItem className=" relative">
@@ -408,7 +372,7 @@ const Page = () => {
                           )}
                         />
                         </form>
-                    </Form>
+                    </Form> */}
                   <DialogFooter>
                     <Button type="submit">Confirm</Button>
                   </DialogFooter>
