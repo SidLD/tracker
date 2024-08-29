@@ -5,6 +5,7 @@ import { roleRouter } from "./routers/role";
 import { postRouter } from "./routers/post";
 import { locationRouter } from "./routers/location";
 import { statusRouter } from "./routers/status";
+import { userRouter } from "./routers/user";
 
 /**
  * This is the primary router for your server.
@@ -16,7 +17,8 @@ export const appRouter = createTRPCRouter({
   authentication: authenticationRouter,
   role: roleRouter,
   location: locationRouter,
-  status: statusRouter
+  status: statusRouter,
+  user: userRouter
 });
 
 // export type definition of API

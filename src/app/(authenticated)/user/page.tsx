@@ -72,17 +72,47 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { User } from '@/lib/types/user'
 import { Separator } from '@/components/ui/separator'
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
+import { api } from '@/trpc/react'
+import { useToast } from '@/components/ui/use-toast'
+import { History } from './_components/history'
 
 const formSchema = z.object({
+  id: z.string().optional(),
   title: z.string().optional(),
   firstName: z.string().min(3, 'Min 3'),
   middleName: z.string().optional(),
   lastName: z.string().min(3, 'Min 3'),
-  role: z.string(),
+  role: z.string().min(1, 'Role is Required'),
 })
+
+const educationalTitles: string[] = [
+  'Elementary School Teacher',
+  'High School Teacher',
+  'Special Education Teacher',
+  'English Teacher',
+  'Math Teacher',
+  'Science Teacher',
+  'History Teacher',
+  'Art Teacher',
+  'Music Teacher',
+  'Physical Education Teacher',
+  'Guidance Counselor',
+  'Academic Advisor',
+  'Principal',
+  'Vice Principal',
+  'Department Head',
+  'Curriculum Coordinator',
+  'Instructional Coach',
+  'Teacher Assistant',
+  'Educational Consultant',
+  'School Social Worker',
+  'School Psychologist',
+  'Superintendent'
+];
 
 
 const Page = () => {
+  const { toast } = useToast()
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -93,13 +123,71 @@ const Page = () => {
       role:"",
     },
   })
-
-  console.log(form.formState.errors)
   const [selectUser, setSelectUser] = useState<User | null>(null)
   const [roles, setRoles] = useState<Role[]>([]);
-
+  const [users, setUsers] = useState<User[]>([])
+ 
   const onCreateUser = async (data: z.infer<typeof formSchema>) => {
-    console.log(data)
+    try {
+      if(selectUser){
+        const response = await fetch('/api/user', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+        if (!response.ok) {
+          toast({
+            variant:"destructive",
+            title : "Error",
+            description : "Invalid Credentials or User Does Not Exist"
+          })
+        }else{
+          toast({
+            variant:"default",
+            title : "Success",
+            description : `Successfully Created User ${data.firstName } ${data.lastName}`
+          })
+          await getUsers()
+        }
+      }else{
+        const response = await fetch('/api/user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+        if (!response.ok) {
+          toast({
+            variant:"destructive",
+            title : "Error",
+            description : "Invalid Credentials or User Already Exist"
+          })
+        }else{
+          toast({
+            variant:"default",
+            title : "Success",
+            description : `Successfully Created User ${data.firstName } ${data.lastName}`
+          })
+          await getUsers()
+        }
+      }
+      
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const getUsers = async () => {
+    const response = await fetch('/api/user', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    setUsers(await response.json() as User[])
   }
 
   const getRoles = async () => {
@@ -119,8 +207,129 @@ const Page = () => {
     }
   };
 
+  const handleSelect = async (user: User) => {
+    setSelectUser(user)
+  }
+
+  const handleUpdate = async () => {
+    if(selectUser){
+      console.log(selectUser)
+      form.setValue('id', selectUser.id)
+      form.setValue('title', selectUser.title)
+      form.setValue('firstName', selectUser.firstName)
+      form.setValue('middleName', selectUser.middleName)
+      form.setValue('lastName', selectUser.lastName)
+      form.setValue('role', selectUser.role.id.toString())
+    }
+  }
+
+  const makeForm = () => {
+    return  <Form {...form}>
+    <form onSubmit={form.handleSubmit(onCreateUser)}>
+          <FormField
+              control={form.control}
+              name="id"
+              render={({ field }) => (
+                  <FormItem className="hidden">
+                  <FormLabel>First Name</FormLabel>
+                  <FormControl>
+                      <Input placeholder="Input Title" {...field} type='hidden'/>
+                  </FormControl>
+                  </FormItem>
+              )}
+            />
+           <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem className=" relative my-5">
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                  <Select onValueChange={(value) => field.onChange(value)}>
+                    <SelectTrigger className="w-[280px]">
+                      <SelectValue placeholder="Select Title" {...field} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {educationalTitles.map(title => <SelectItem key={title} value={title}>{title}</SelectItem>)}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  </FormControl>
+                  <FormMessage className=" absolute -bottom-5"/>
+                  </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="firstName"
+              render={({ field }) => (
+                  <FormItem className=" relative my-5">
+                  <FormLabel>First Name</FormLabel>
+                  <FormControl>
+                      <Input placeholder="Input Title" {...field} />
+                  </FormControl>
+                  <FormMessage className=" absolute -bottom-5"/>
+                  </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="middleName"
+              render={({ field }) => (
+                  <FormItem className=" relative my-5">
+                  <FormLabel>Middle Name</FormLabel>
+                  <FormControl>
+                      <Input placeholder="Input Title" {...field} />
+                  </FormControl>
+                  <FormMessage className=" absolute -bottom-5"/>
+                  </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="lastName"
+              render={({ field }) => (
+                  <FormItem className=" relative my-5">
+                  <FormLabel>Last Name</FormLabel>
+                  <FormControl>
+                      <Input placeholder="Input Title" {...field} />
+                  </FormControl>
+                  <FormMessage className=" absolute -bottom-5"/>
+                  </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                  <FormItem className=" relative my-5">
+                  <FormLabel>Role</FormLabel>
+                  <FormControl>
+                  <Select   onValueChange={(value) => field.onChange(value)}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select Role" {...field} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {roles.map(role => <SelectItem key={role.id} value={role.id.toString()}>{role.name}</SelectItem>)}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  </FormControl>
+                  <FormMessage className=" absolute -bottom-5"/>
+                  </FormItem>
+              )}
+            />
+       <Button type='submit' onClick={() => onCreateUser}>Confirm</Button>
+    </form>
+  </Form>
+  }
+
   useEffect(() => {
-    getRoles()
+    getRoles(),
+    getUsers()
   }, [])
 
   return (
@@ -130,95 +339,25 @@ const Page = () => {
         <div className="flex items-center">
           <div className="ml-auto flex items-center gap-2">
           <Dialog>
-            <Form {...form}>
-                <DialogTrigger asChild>
-                  <Button variant="outline">
-                    <File className="h-3.5 w-3.5 mr-2" />
-                    <span>New Data</span></Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>New User</DialogTitle>
-                  </DialogHeader>
-                        <FormField
-                          control={form.control}
-                          name="title"
-                          render={({ field }) => (
-                              <FormItem className=" relative">
-                              <FormLabel>Title</FormLabel>
-                              <FormControl>
-                                  <Input placeholder="Input Title" {...field} />
-                              </FormControl>
-                              <FormMessage className=" absolute -bottom-5"/>
-                              </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="firstName"
-                          render={({ field }) => (
-                              <FormItem className=" relative">
-                              <FormLabel>First Name</FormLabel>
-                              <FormControl>
-                                  <Input placeholder="Input Title" {...field} />
-                              </FormControl>
-                              <FormMessage className=" absolute -bottom-5"/>
-                              </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="middleName"
-                          render={({ field }) => (
-                              <FormItem className=" relative">
-                              <FormLabel>Middle Name</FormLabel>
-                              <FormControl>
-                                  <Input placeholder="Input Title" {...field} />
-                              </FormControl>
-                              <FormMessage className=" absolute -bottom-5"/>
-                              </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="lastName"
-                          render={({ field }) => (
-                              <FormItem className=" relative">
-                              <FormLabel>Last Name</FormLabel>
-                              <FormControl>
-                                  <Input placeholder="Input Title" {...field} />
-                              </FormControl>
-                              <FormMessage className=" absolute -bottom-5"/>
-                              </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="role"
-                          render={({ field }) => (
-                              <FormItem className=" relative">
-                              <FormLabel>Role</FormLabel>
-                              <FormControl>
-                              <Select>
-                                <SelectTrigger className="w-[180px]">
-                                  <SelectValue placeholder="Select Role" {...field} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectGroup>
-                                    {roles.map(role => <SelectItem key={role.id} value={role.id.toString()}>{role.name}</SelectItem>)}
-                                  </SelectGroup>
-                                </SelectContent>
-                              </Select>
-                              </FormControl>
-                              <FormMessage className=" absolute -bottom-5"/>
-                              </FormItem>
-                          )}
-                        />
-                        <DialogFooter>
-                          <Button type='submit' onClick={() => onCreateUser}>Confirm</Button>
-                        </DialogFooter>
-                </DialogContent>
-            </Form>
+            <DialogTrigger asChild>
+              <Button variant="outline" onClick={() => {
+                  setSelectUser(null)
+                  form.resetField('id')
+                  form.resetField('firstName')
+                  form.resetField('middleName')
+                  form.resetField('lastName')
+                  form.resetField('role')
+                  form.resetField('title')
+                }}>
+                <File className="h-3.5 w-3.5 mr-2" />
+                <span>New Data</span></Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>New User</DialogTitle>
+              </DialogHeader>
+              {makeForm()}
+            </DialogContent>
           </Dialog>
           </div>
         </div>
@@ -248,28 +387,27 @@ const Page = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow className="bg-accent">
-                    <TableCell>
-                      <div className="font-medium">Liam Johnson</div>
-                      <div className="hidden text-sm text-muted-foreground md:inline">
-                        liam@example.com
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      Sale
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      <Badge className="text-xs" variant="secondary">
-                        Fulfilled
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      2023-06-23
-                    </TableCell>
-                    <TableCell className="">
-                      <Button>Select</Button>
-                    </TableCell>
-                  </TableRow>
+                {users.map((user, index) => (
+                      <TableRow key={index} className="bg-accent">
+                        <TableCell>
+                          <div className="font-medium">{user.title}</div>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                        <div className="font-medium">{user.firstName} {user.lastName}</div>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          <Badge className="text-xs" variant="secondary">
+                            {user.role.name}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                        {new Date().toString()}
+                        </TableCell>
+                        <TableCell>
+                          <Button onClick={() => handleSelect(user)}>Select</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </CardContent>
@@ -278,16 +416,14 @@ const Page = () => {
       </Tabs>
     </div>
     <div>
-      <Card
-        className="overflow-hidden" x-chunk="dashboard-05-chunk-4"
-      >
+      <Card className="overflow-hidden" x-chunk="dashboard-05-chunk-4" >
         <CardHeader className="flex flex-row items-start bg-muted/50">
           <div className="grid gap-0.5">
             <CardTitle className="group flex items-center gap-2 text-lg">
               Details
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="ghost" className='w-5 mx-1 p-0'>
+                  <Button variant="ghost" className='w-5 mx-1 p-0' onClick={handleUpdate} disabled={!selectUser}>
                     <Pencil className='' />
                   </Button>
                 </DialogTrigger>
@@ -295,87 +431,7 @@ const Page = () => {
                   <DialogHeader>
                     <DialogTitle>Edit User</DialogTitle>
                   </DialogHeader>
-                    {/* <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onUpdateUser)}>
-                          <FormField
-                            control={form.control}
-                            name="title"
-                            render={({ field }) => (
-                                <FormItem className=" relative">
-                                <FormLabel>Title</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Select Title" {...field} />
-                                </FormControl>
-                                <FormMessage className=" absolute -bottom-5"/>
-                                </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="firstName"
-                            render={({ field }) => (
-                                <FormItem className=" relative">
-                                <FormLabel>Title</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Select Title" {...field} />
-                                </FormControl>
-                                <FormMessage className=" absolute -bottom-5"/>
-                                </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="middleName"
-                            render={({ field }) => (
-                                <FormItem className=" relative">
-                                <FormLabel>Title</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Select Title" {...field} />
-                                </FormControl>
-                                <FormMessage className=" absolute -bottom-5"/>
-                                </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="lastName"
-                            render={({ field }) => (
-                                <FormItem className=" relative">
-                                <FormLabel>Title</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Select Title" {...field} />
-                                </FormControl>
-                                <FormMessage className=" absolute -bottom-5"/>
-                                </FormItem>
-                            )}
-                          />
-                          <FormField
-                          control={form.control}
-                          name="role"
-                          render={({ field }) => (
-                              <FormItem className=" relative">
-                              <FormLabel>Role</FormLabel>
-                              <FormControl>
-                              <Select>
-                                <SelectTrigger className="w-[180px]">
-                                  <SelectValue placeholder="Select Role" {...field} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectGroup>
-                                    {roles.map(role => <SelectItem key={role.id} value={role.id.toString()}>{role.name}</SelectItem>)}
-                                  </SelectGroup>
-                                </SelectContent>
-                              </Select>
-                              </FormControl>
-                              <FormMessage className=" absolute -bottom-5"/>
-                              </FormItem>
-                          )}
-                        />
-                        </form>
-                    </Form> */}
-                  <DialogFooter>
-                    <Button type="submit">Confirm</Button>
-                  </DialogFooter>
+                  {makeForm()}
                 </DialogContent>
               </Dialog>
             </CardTitle>
@@ -386,27 +442,26 @@ const Page = () => {
                 <div>
                   <div className='grid grid-cols-2'>
                       <Label>Title</Label>
-                      PhD
+                      {selectUser && selectUser.title}
                   </div>
                   <div className='grid grid-cols-2'>
                       <Label>First Name</Label>
-                      Liam
+                      {selectUser && selectUser.firstName}
                   </div>
                   <div className='grid grid-cols-2'>
                       <Label>Middle Name</Label>
-                      
+                      {selectUser && selectUser.middleName}
                   </div>
                   <div className='grid grid-cols-2'>
                       <Label>Last Name</Label>
-                      Johanson
+                      {selectUser && selectUser.lastName}
                   </div>
                   <div className='grid grid-cols-2'>
                       <Label>Role</Label>
-                      Staff
+                      {selectUser && selectUser.role.name}
                   </div>
                   <div className='grid grid-cols-2'>
                       <Label>Current Status</Label>
-                      Working in Division 2
                   </div>
                 </div>
         </CardContent>
@@ -417,9 +472,7 @@ const Page = () => {
         </CardFooter>
       </Card>
       <Separator className='my-2'/>
-      <Card
-        className="overflow-hidden" x-chunk="dashboard-05-chunk-4"
-      >
+      <Card className="overflow-hidden" x-chunk="dashboard-05-chunk-4">
         <CardHeader className="flex flex-row items-start bg-muted/50">
           <div className="grid gap-0.5">
             <CardTitle className="group flex items-center gap-2 text-lg">
@@ -437,57 +490,7 @@ const Page = () => {
           </div>
         </CardHeader>
         <CardContent className="p-6 text-sm">
-          <div className="grid gap-3">
-            <div className="font-semibold flex justify-start items-center">
-              <span>Date: 08/25/2024</span>
-              <Button variant="ghost" className='w-4 mx-1 p-0'>
-                <Pencil  />
-              </Button>
-            </div>
-            <dl className="grid gap-3">
-              <div className="flex items-center justify-between">
-                <dt className="flex items-center gap-1 text-muted-foreground">
-                  <CreditCard className="h-4 w-4" />
-                  Status
-                </dt>
-                <dd>****</dd>
-                
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="flex items-center gap-1 text-muted-foreground">
-                  <CreditCard className="h-4 w-4" />
-                  Location
-                </dt>
-                <dd>****</dd>
-              </div>
-            </dl>
-          </div>
-          <Separator className='my-5'/>
-          <div className="grid gap-3">
-            <div className="font-semibold flex justify-start items-center">
-              <span>Date: 08/25/2024</span>
-              <Button variant="ghost" className='w-4 mx-1 p-0'>
-                <Pencil  />
-              </Button>
-            </div>
-            <dl className="grid gap-3">
-              <div className="flex items-center justify-between">
-                <dt className="flex items-center gap-1 text-muted-foreground">
-                  <CreditCard className="h-4 w-4" />
-                  Status
-                </dt>
-                <dd>****</dd>
-                
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="flex items-center gap-1 text-muted-foreground">
-                  <CreditCard className="h-4 w-4" />
-                  Location
-                </dt>
-                <dd>****</dd>
-              </div>
-            </dl>
-          </div>
+            <History />
         </CardContent>
         <CardFooter className="flex flex-row items-center border-t bg-muted/50 px-6 py-3">
           <div className="text-xs text-muted-foreground">

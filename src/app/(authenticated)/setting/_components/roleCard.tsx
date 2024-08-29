@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@radix-ui/react-select"
 import { RoleTable } from "./roleTable"
 import { useToast } from "@/components/ui/use-toast"
-import { api } from "@/trpc/server"
+import { api } from "@/trpc/react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -112,6 +112,7 @@ export function RoleCard() {
 
   const getRoles = async () => {
     try {
+      const data = api
       const response = await fetch('/api/role', {
         method: 'GET',
         headers: {

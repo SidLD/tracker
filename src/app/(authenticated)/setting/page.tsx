@@ -2,16 +2,42 @@ import { Separator } from "@/components/ui/separator";
 import { RoleCard } from "./_components/roleCard";
 import { LocationCard } from "./_components/locationCard";
 import { StatusCard } from "./_components/statusCard";
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
 
 const Page = () => {
     return (
-        <main className="flex min-h-[calc(100vh_-_theme(spacing.16))] flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
+    <Tabs defaultValue="role" className="">
+      <TabsList className="grid w-full grid-cols-3">
+        <TabsTrigger value="role">Role</TabsTrigger>
+        <TabsTrigger value="location">Location</TabsTrigger>
+        <TabsTrigger value="status">Status</TabsTrigger>
+      </TabsList>
+        <TabsContent value="role">
           <RoleCard/>
-          <Separator />
+        </TabsContent>
+        <TabsContent value="location">
           <LocationCard/>
-          <Separator />
+        </TabsContent>
+        <TabsContent value="status">
           <StatusCard />
-      </main>
+        </TabsContent>
+    </Tabs>
     );
 }
  
