@@ -1,4 +1,4 @@
-export type status = {
+export type Status = {
     id: number
     name: string
 }

@@ -1,4 +1,4 @@
-export type location = {
+export type Location = {
     id: number
     name: string
 }

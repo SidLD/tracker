@@ -1,12 +1,15 @@
 import { Button } from '@/components/ui/button'
 import { Separator } from '@radix-ui/react-select'
 import { CreditCard, Pencil } from 'lucide-react'
-import React from 'react'
+import React, { useContext } from 'react'
+import { HistoryContext } from '../page'
 
 export const History = () => {
+  const {user} = useContext(HistoryContext)
+  
   return (
    <>
-   <div className="grid gap-3">
+      <div className="grid gap-3">
             <div className="font-semibold flex justify-start items-center">
               <span>Date: 08/25/2024</span>
               <Button variant="ghost" className='w-4 mx-1 p-0'>

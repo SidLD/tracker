@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import React, { createContext, useEffect, useState } from 'react'
 import Image from "next/image"
 import Link from "next/link"
 import {
@@ -72,9 +72,24 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { User } from '@/lib/types/user'
 import { Separator } from '@/components/ui/separator'
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
-import { api } from '@/trpc/react'
 import { useToast } from '@/components/ui/use-toast'
 import { History } from './_components/history'
+import { Status } from '@/lib/types/status'
+import { Location } from '@/lib/types/location'
+
+import { addDays, format } from "date-fns"
+import { Calendar as CalendarIcon } from "lucide-react"
+import { DateRange } from "react-day-picker"
+ 
+import { cn } from "@/lib/utils"
+import { Calendar } from "@/components/ui/calendar"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+
+
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -83,6 +98,13 @@ const formSchema = z.object({
   middleName: z.string().optional(),
   lastName: z.string().min(3, 'Min 3'),
   role: z.string().min(1, 'Role is Required'),
+})
+
+const historySchema = z.object({
+  id: z.string().optional(),
+  status: z.string(),
+  location: z.string(),
+  date: z.any(),
 })
 
 const educationalTitles: string[] = [
@@ -110,6 +132,7 @@ const educationalTitles: string[] = [
   'Superintendent'
 ];
 
+export const HistoryContext = createContext<any>({});
 
 const Page = () => {
   const { toast } = useToast()
@@ -125,8 +148,18 @@ const Page = () => {
   })
   const [selectUser, setSelectUser] = useState<User | null>(null)
   const [roles, setRoles] = useState<Role[]>([]);
+  const [status, setStatus] = useState<Status[]>([]);
+  const [location, setLocation] = useState<Location[]>([]);
   const [users, setUsers] = useState<User[]>([])
  
+  const historyForm = useForm<z.infer<typeof historySchema>>({
+    resolver: zodResolver(historySchema),
+    defaultValues: {
+      status: '',
+      location: ''
+    },
+  })
+
   const onCreateUser = async (data: z.infer<typeof formSchema>) => {
     try {
       if(selectUser){
@@ -207,13 +240,51 @@ const Page = () => {
     }
   };
 
+  const getLocation = async () => {
+    try {
+      const response = await fetch('/api/location', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      setLocation(await response.json())
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+    }
+  };
+
+  const getStatus = async () => {
+    try {
+      const response = await fetch('/api/status', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      setStatus(await response.json())
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+    }
+  };
+  const [date, setDate] = React.useState<DateRange | undefined>({
+    from: new Date(2022, 0, 20),
+    to: addDays(new Date(2022, 0, 20), 20),
+  }) 
+
   const handleSelect = async (user: User) => {
     setSelectUser(user)
   }
 
   const handleUpdate = async () => {
     if(selectUser){
-      console.log(selectUser)
       form.setValue('id', selectUser.id)
       form.setValue('title', selectUser.title)
       form.setValue('firstName', selectUser.firstName)
@@ -226,7 +297,7 @@ const Page = () => {
   const makeForm = () => {
     return  <Form {...form}>
     <form onSubmit={form.handleSubmit(onCreateUser)}>
-          <FormField
+            <FormField
               control={form.control}
               name="id"
               render={({ field }) => (
@@ -238,16 +309,16 @@ const Page = () => {
                   </FormItem>
               )}
             />
-           <FormField
+            <FormField
               control={form.control}
               name="title"
               render={({ field }) => (
                 <FormItem className=" relative my-5">
                   <FormLabel>Title</FormLabel>
                   <FormControl>
-                  <Select onValueChange={(value) => field.onChange(value)}>
+                  <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
                     <SelectTrigger className="w-[280px]">
-                      <SelectValue placeholder="Select Title" {...field} />
+                      <SelectValue placeholder="Select Title" {...field}/>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -306,8 +377,7 @@ const Page = () => {
                   <FormItem className=" relative my-5">
                   <FormLabel>Role</FormLabel>
                   <FormControl>
-                  <Select   onValueChange={(value) => field.onChange(value)}
-                  >
+                  <Select   onValueChange={(value) => field.onChange(value)} value={field.value} >
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Select Role" {...field} />
                     </SelectTrigger>
@@ -327,9 +397,136 @@ const Page = () => {
   </Form>
   }
 
+  const makeHistoryForm = () => {
+    return <Form {...historyForm}>
+      <form onSubmit={historyForm.handleSubmit(onCreateHistory)}>
+            <FormField
+              control={historyForm.control}
+              name="id"
+              render={({ field }) => (
+                  <FormItem className="hidden">
+                  <FormControl>
+                      <Input placeholder="Input Title" {...field} type='hidden'/>
+                  </FormControl>
+                  </FormItem>
+              )}
+            />
+            <FormField
+              control={historyForm.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem className=" relative my-5">
+                  <FormLabel>Location</FormLabel>
+                  <FormControl>
+                  <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
+                    <SelectTrigger className="w-[280px]">
+                      <SelectValue placeholder="Select Title" {...field}/>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {location.map(location => <SelectItem key={location.id} value={location.id.toString()}>{location.name}</SelectItem>)}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  </FormControl>
+                  <FormMessage className=" absolute -bottom-5"/>
+                  </FormItem>
+              )}
+            />
+            <FormField
+              control={historyForm.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem className=" relative my-5">
+                  <FormLabel>Status</FormLabel>
+                  <FormControl>
+                  <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
+                    <SelectTrigger className="w-[280px]">
+                      <SelectValue placeholder="Select Title" {...field}/>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {status.map(location => <SelectItem key={location.id} value={location.id.toString()}>{location.name}</SelectItem>)}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  </FormControl>
+                  <FormMessage className=" absolute -bottom-5"/>
+                  </FormItem>
+              )}
+            />
+            <FormField
+              control={historyForm.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem className=" relative my-5">
+                  <FormLabel>Date</FormLabel>
+                  <FormControl>
+                  <div className={cn("grid gap-2")}>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          id="date"
+                          variant={"outline"}
+                          className={cn(
+                            "w-[300px] justify-start text-left font-normal",
+                            !date && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {date?.from ? (
+                            date.to ? (
+                              <>
+                                {format(date.from, "LLL dd, y")} -{" "}
+                                {format(date.to, "LLL dd, y")}
+                              </>
+                            ) : (
+                              format(date.from, "LLL dd, y")
+                            )
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          initialFocus
+                          mode="range"
+                          defaultMonth={date?.from}
+                          selected={date}
+                          onSelect={setDate}
+                          numberOfMonths={2}
+                          {...field}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  </FormControl>
+                  <FormMessage className=" absolute -bottom-5"/>
+                  </FormItem>
+              )}
+            />
+
+       <Button type='submit' onClick={() => onCreateHistory}>Confirm</Button>
+    </form>
+  </Form>
+  }
+
+  const onCreateHistory = async (data: z.infer<typeof historySchema>) => {
+    try {
+      if(selectUser){
+        console.log(data, date)
+      }    
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   useEffect(() => {
     getRoles(),
-    getUsers()
+    getUsers(),
+    getLocation(),
+    getStatus()
   }, [])
 
   return (
@@ -477,20 +674,25 @@ const Page = () => {
           <div className="grid gap-0.5">
             <CardTitle className="group flex items-center gap-2 text-lg">
               History
-              <Button
-                size="icon"
-                variant="outline"
-                className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
-              >
-                <Copy className="h-3 w-3" />
-                <span className="sr-only">Copy Order ID</span>
-              </Button>
+              <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" onClick={() => {}} disabled={!selectUser}>+</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>New History</DialogTitle>
+              </DialogHeader>
+              {makeHistoryForm()}
+            </DialogContent>
+          </Dialog>
             </CardTitle>
             <CardDescription>Date: November 23, 2023</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="p-6 text-sm">
+          <HistoryContext.Provider value={{user: selectUser}}> 
             <History />
+          </HistoryContext.Provider>
         </CardContent>
         <CardFooter className="flex flex-row items-center border-t bg-muted/50 px-6 py-3">
           <div className="text-xs text-muted-foreground">
