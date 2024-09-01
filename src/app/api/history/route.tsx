@@ -22,6 +22,7 @@ export async function GET (request: NextRequest){
     const userId = searchParams.get("userId")!;
     const data = await api.history.getHistory({userId})
     return NextResponse.json(data);
+    
 }
 
 export async function PUT (request: NextRequest){
