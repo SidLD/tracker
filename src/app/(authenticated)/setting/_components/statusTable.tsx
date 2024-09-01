@@ -1,15 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 "use client"
 
 import * as React from "react"
 import {
-  ColumnDef,
-  ColumnFiltersState,
+  type ColumnDef,
+  type ColumnFiltersState,
   Row,
-  SortingState,
-  VisibilityState,
+  type SortingState,
+  type VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -34,13 +31,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { location } from "@/lib/types/location"
+import { type Location } from "@/lib/types/location"
 import { StatusContext } from "./statusCard"
 
 
 
 export function StatusTable() {
-  const { data, onSelectItem} = React.useContext(StatusContext);
+  const { data, onSelectItem} = React.useContext<any>(StatusContext);
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -49,7 +46,7 @@ export function StatusTable() {
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
 
-  const columns: ColumnDef<location>[] = [
+  const columns: ColumnDef<Location>[] = [
     {
       id: "id",
       enableSorting: false,

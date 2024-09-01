@@ -12,13 +12,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@radix-ui/react-select"
 import { useToast } from "@/components/ui/use-toast"
-import { api } from "@/trpc/server"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { createContext, useEffect, useState } from "react";
-import { location } from "@/lib/types/location";
+import { type Location } from "@/lib/types/location";
 import { LocationTable } from "./locationTable";
 
 
@@ -28,15 +27,15 @@ const LocationSchema = z.object({
 })
 
 export const LocationContext = createContext<{
-  data: location[],
+  data: Location[],
   onSelectItem: any
 } | undefined>(undefined);
 
 export function LocationCard() {
   const {toast} = useToast();
-  const [locations, setLocations] = useState<location[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(false)
-  const [selectedLocation, setSelectedLocation] = useState<location | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const form = useForm<z.infer<typeof LocationSchema>>({
     resolver: zodResolver(LocationSchema),
     defaultValues: {
@@ -44,7 +43,7 @@ export function LocationCard() {
     },
   })
 
-  const onSelectItem = (location : location) => {
+  const onSelectItem = (location : Location) => {
     setSelectedLocation(location)
   }
 
@@ -121,7 +120,7 @@ export function LocationCard() {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-      setLocations(await response.json() as location[]);
+      setLocations(await response.json() as Location[]);
     } catch (error) {
       console.error("Error fetching roles:", error);
     }
@@ -133,7 +132,7 @@ export function LocationCard() {
   }
 
   useEffect(() => {
-    getItems()
+    void getItems()
   }, [])
 
   useEffect(() => {

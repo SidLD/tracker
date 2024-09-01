@@ -1,7 +1,6 @@
 
-import { api, HydrateClient } from "@/trpc/server";
+import { HydrateClient } from "@/trpc/server";
 import { LoginCard } from "./_components/login/_components/login";
-import { RegisterCard } from "./_components/register/register-card";
 
 export default async function Home() {
   return (

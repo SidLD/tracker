@@ -15,10 +15,8 @@ import {   Form,
   FormMessage, } from "@/components/ui/form"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
-import {  Select, SelectContent, SelectItem, SelectTrigger, SelectValue  } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { api } from "@/trpc/server";
 import axios from "axios"
 
 const FormSchema = z.object({
@@ -54,7 +52,6 @@ export function RegisterCard() {
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try{
       setSignUpLoading(true)
-      data.role = 1;
       await axios.post('http://localhost:3000/api/user', data)
         .then( async (data: any) => {
           toast({

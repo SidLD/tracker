@@ -5,11 +5,10 @@
 
 import * as React from "react"
 import {
-  ColumnDef,
-  ColumnFiltersState,
-  Row,
-  SortingState,
-  VisibilityState,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
+  type VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -34,13 +33,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { type Location } from "@/lib/types/location"
 import { LocationContext } from "./locationCard"
-import { location } from "@/lib/types/location"
 
 
 
 export function LocationTable() {
-  const { data, onSelectItem} = React.useContext(LocationContext);
+  const { data, onSelectItem} = React.useContext<any>(LocationContext);
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -49,7 +48,7 @@ export function LocationTable() {
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
 
-  const columns: ColumnDef<location>[] = [
+  const columns: ColumnDef<Location>[] = [
     {
       id: "id",
       enableSorting: false,

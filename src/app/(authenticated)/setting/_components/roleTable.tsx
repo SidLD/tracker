@@ -1,15 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 "use client"
 
 import * as React from "react"
 import {
-  ColumnDef,
-  ColumnFiltersState,
-  Row,
-  SortingState,
-  VisibilityState,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
+  type VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -34,13 +31,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Role } from "@/lib/types/role"
+import { type Role } from "@/lib/types/role"
 import { RoleContext } from "./roleCard"
 
 
 
 export function RoleTable() {
-  const { data, onSelectRole} = React.useContext(RoleContext);
+  const { data, onSelectRole} = React.useContext<any>(RoleContext);
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []

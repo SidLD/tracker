@@ -2,7 +2,6 @@
 import { Button } from '@/components/ui/button'
 import { ChevronRight, CreditCard, Pencil, Trash } from 'lucide-react'
 import React, { useContext, useEffect, useState } from 'react'
-import { HistoryContext, type HistoryContextType } from '../page'
 import { type History as historyType } from '@/lib/types/history'
 import _axios from '@/lib/axios'
 import { Input } from "@/components/ui/input"
@@ -25,6 +24,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { useToast } from '@/components/ui/use-toast'
+import { HistoryContext, HistoryContextType } from '@/lib/context'
 
 
 const historySchema = z.object({

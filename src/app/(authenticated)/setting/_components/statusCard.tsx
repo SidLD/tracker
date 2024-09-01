@@ -18,7 +18,7 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { createContext, useEffect, useState } from "react";
-import { status } from "@/lib/types/status";
+import { type Status } from "@/lib/types/status";
 import { LocationTable } from "./locationTable";
 import { StatusTable } from "./statusTable";
 
@@ -29,15 +29,15 @@ const LocationSchema = z.object({
 })
 
 export const StatusContext = createContext<{
-  data: status[],
+  data: Status[],
   onSelectItem: any
 } | undefined>(undefined);
 
 export function StatusCard() {
   const {toast} = useToast();
-  const [locations, setLocations] = useState<status[]>([]);
+  const [locations, setLocations] = useState<Status[]>([]);
   const [loading, setLoading] = useState(false)
-  const [selectedItem, setSelectedItem] = useState<status | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Status | null>(null);
   const form = useForm<z.infer<typeof LocationSchema>>({
     resolver: zodResolver(LocationSchema),
     defaultValues: {
@@ -45,7 +45,7 @@ export function StatusCard() {
     },
   })
 
-  const onSelectItem = (status : status) => {
+  const onSelectItem = (status : Status) => {
     setSelectedItem(status)
   }
 
@@ -122,7 +122,7 @@ export function StatusCard() {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-      setLocations(await response.json() as status[]);
+      setLocations(await response.json() as Status[]);
     } catch (error) {
       console.error("Error fetching roles:", error);
     }
@@ -134,7 +134,7 @@ export function StatusCard() {
   }
 
   useEffect(() => {
-    getItems()
+    void getItems()
   }, [])
 
   useEffect(() => {

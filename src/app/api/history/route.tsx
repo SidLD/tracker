@@ -31,7 +31,7 @@ export async function PUT (request: NextRequest){
 }
 
 export async function DELETE (request: NextRequest){
-    const payload = await request.json() as Payload
+    const payload = await request.json() as {id: string}
     const data = await api.history.deleteHistory(payload)
     return NextResponse.json(data);
 }

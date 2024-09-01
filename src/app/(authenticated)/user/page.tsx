@@ -64,6 +64,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import _axios from '@/lib/axios'
+import { HistoryContext } from '@/lib/context'
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -105,14 +106,6 @@ const educationalTitles: string[] = [
   'School Psychologist',
   'Superintendent'
 ];
-
-export type HistoryContextType = {
-  user: User | null;
-  location: Location[],
-  status: Status[]
-} | any
-
-export const HistoryContext = createContext<HistoryContextType>(any);
 
 const Page = () => {
   const { toast } = useToast()

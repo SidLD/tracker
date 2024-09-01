@@ -2,8 +2,6 @@
 import { Button } from '@/components/ui/button'
 import { ChevronRight, CreditCard, Pencil, Trash } from 'lucide-react'
 import React, { useContext, useEffect, useState } from 'react'
-import { HistoryContext, type HistoryContextType } from '../page'
-import { type History as historyType } from '@/lib/types/history'
 import _axios from '@/lib/axios'
 import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -23,8 +21,9 @@ import { type Status } from '@/lib/types/status'
 import { type Location } from '@/lib/types/location'
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { useToast } from '@/components/ui/use-toast'
+import { HistoryContext, type HistoryContextType } from '@/lib/context'
+import { type History as historyType } from '@/lib/types/history'
 
 
 const historySchema = z.object({

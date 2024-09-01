@@ -19,7 +19,7 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { createContext, useEffect, useState } from "react";
-import { Role } from "@/lib/types/role";
+import { type Role } from "@/lib/types/role";
 
 
 const RoleSchema = z.object({
@@ -134,7 +134,7 @@ export function RoleCard() {
   }
 
   useEffect(() => {
-    getRoles()
+    void getRoles()
   }, [])
 
   useEffect(() => {
