@@ -4,29 +4,51 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 export const historyRouter = createTRPCRouter({  
 getHistory: protectedProcedure
+    .input((z.object({
+        userId: z.string(),
+    })))
     .query(async({ ctx, input }) => {
-        const records = await ctx.db.records.findMany({})
+        const records = await ctx.db.records.findMany({
+            where: {
+                userId: input.userId
+            },
+            include:{
+                status: true,
+                location: true
+            },
+            orderBy: {
+                dateFrom: "asc"
+            }
+        })
         return records;
     }),
 ceateHistory: protectedProcedure
     .input(z.object({ 
-        name: z.string()
+        user : z.string(),
+        dateFrom: z.string(),
+        dateTo : z.string(),
+        status: z.string(), 
+        location : z.string()
     }))
     .mutation(async({ ctx, input }) => {
-        const roleFound = await ctx.db.records.findFirst({
+        console.log('test',input)
+        return await ctx.db.records.create({
+            data: {
+                userId: input.user,
+                dateFrom: new Date(input.dateFrom),
+                dateTo: new Date(input.dateTo),
+                statusId: parseInt(input.status),
+                locationId: parseInt(input.location)
+            }
         })
-        if(roleFound){
-            throw Error("Role Already Exist")
-        }
-        // return await ctx.db.records.create({
-        // })
     }),
 updateHistory: protectedProcedure
     .input(z.object({ 
         id: z.any(),
-        name: z.string().min(3, {
-            message: "name must be at least 5 characters.",
-        })
+        dateFrom: z.string(),
+        dateTo : z.string(),
+        status: z.string(), 
+        location : z.string()
     }))
     .mutation(async({ ctx, input }) => {
         const roleFound = await ctx.db.records.findFirst({
@@ -35,30 +57,30 @@ updateHistory: protectedProcedure
         if(!roleFound){
             throw Error("Role Does not Exist")
         }
-        // return await ctx.db.records.update({
-        //     where: {id: input.id},
-        //     data: {
-        //         name: input.name,
-        //     }
-        // })
+        return await ctx.db.records.update({
+            where: {id: input.id},
+            data: {
+               dateFrom: input.dateFrom,
+               dateTo: input.dateTo,
+               statusId: parseInt(input.status),
+               locationId: parseInt(input.location)
+            }
+        })
     }),
 deleteHistory: protectedProcedure
     .input(z.object({ 
-        id: z.any(),
-        name: z.string().min(3, {
-            message: "name must be at least 5 characters.",
-        })
+        id: z.string(),    
     }))
     .mutation(async({ ctx, input }) => {
-        // const roleFound = await ctx.db.records.findFirst({
-        //     where: { name: input.name}
-        // })
-        // if(!roleFound){
-        //     throw Error("Role Does not Exist")
-        // }
-        // return await ctx.db.records.delete({
-        //     where: {id: input.id},
-        // })
+        const roleFound = await ctx.db.records.findFirst({
+            where: { id: input.id}
+        })
+        if(!roleFound){
+            throw Error("History Does not Exist")
+        }
+        return await ctx.db.records.delete({
+            where: {id: input.id},
+        })
     }),
 })
 

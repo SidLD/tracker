@@ -1,37 +1,13 @@
 'use client'
 import React, { createContext, useEffect, useState } from 'react'
-import Image from "next/image"
-import Link from "next/link"
 import {
   ChevronLeft,
   ChevronRight,
-  Copy,
-  CreditCard,
   File,
-  Home,
-  LineChart,
-  ListFilter,
-  MoreVertical,
-  Package,
-  Package2,
-  PanelLeft,
   Pencil,
-  Search,
-  Settings,
-  ShoppingCart,
-  Truck,
-  Users2,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -57,29 +33,28 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Label } from '@/components/ui/label'
-import { z } from 'zod'
+import { any, z } from 'zod'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Role } from '@/lib/types/role'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { User } from '@/lib/types/user'
+import { type Role } from '@/lib/types/role'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { type User } from '@/lib/types/user'
 import { Separator } from '@/components/ui/separator'
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
 import { useToast } from '@/components/ui/use-toast'
 import { History } from './_components/history'
-import { Status } from '@/lib/types/status'
-import { Location } from '@/lib/types/location'
-
+import { type Status } from '@/lib/types/status'
+import { type Location } from '@/lib/types/location'
 import { addDays, format } from "date-fns"
 import { Calendar as CalendarIcon } from "lucide-react"
-import { DateRange } from "react-day-picker"
+import { type DateRange } from "react-day-picker"
+import { type History as historyType } from '@/lib/types/history'
  
 import { cn } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
@@ -88,8 +63,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-
-
+import _axios from '@/lib/axios'
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -132,7 +106,13 @@ const educationalTitles: string[] = [
   'Superintendent'
 ];
 
-export const HistoryContext = createContext<any>({});
+export type HistoryContextType = {
+  user: User | null;
+  location: Location[],
+  status: Status[]
+} | any
+
+export const HistoryContext = createContext<HistoryContextType>(any);
 
 const Page = () => {
   const { toast } = useToast()
@@ -151,6 +131,7 @@ const Page = () => {
   const [status, setStatus] = useState<Status[]>([]);
   const [location, setLocation] = useState<Location[]>([]);
   const [users, setUsers] = useState<User[]>([])
+  const [history, setHistory] = useState<historyType[]>([])
  
   const historyForm = useForm<z.infer<typeof historySchema>>({
     resolver: zodResolver(historySchema),
@@ -515,18 +496,57 @@ const Page = () => {
   const onCreateHistory = async (data: z.infer<typeof historySchema>) => {
     try {
       if(selectUser){
-        console.log(data, date)
+        const response = await _axios.post('/api/history', {
+          ...data,
+          user: selectUser.id,
+          dateFrom: date?.from,
+          dateTo: date?.to
+        })
+        if (!response.status) {
+          toast({
+            variant:"destructive",
+            title : "Error",
+            description : ""
+          })
+        }else{
+          toast({
+            variant:"default",
+            title : "Success",
+            description : `Successfully Created History`
+          })
+          await getHistory();
+        }
       }    
     } catch (error) {
       console.log(error)
     }
   }
 
+  const getHistory = async () => {
+    try {
+      if(selectUser?.id){
+        const response = await _axios.get('/api/history', {
+          params: {
+            userId: selectUser.id
+          }
+        });
+      setHistory(response.data)
+      }
+    } catch (error) {
+      console.log('err', error)
+    }
+  }
+
   useEffect(() => {
-    getRoles(),
-    getUsers(),
-    getLocation(),
-    getStatus()
+    const init = async (): Promise<void> => {
+      await Promise.all([
+        getRoles(),
+        getUsers(),
+        getLocation(),
+        getStatus(),
+      ]);
+    };
+    void init().catch()
   }, [])
 
   return (
@@ -561,7 +581,7 @@ const Page = () => {
         <TabsContent value="week">
           <Card x-chunk="dashboard-05-chunk-3">
             <CardHeader className="px-7">
-              <CardTitle>Dashboard</CardTitle>
+              <CardTitle>User Management</CardTitle>
               <CardDescription>
                 Overview
               </CardDescription>
@@ -576,10 +596,10 @@ const Page = () => {
                     <TableHead className="hidden sm:table-cell">
                       Name
                     </TableHead>
-                    <TableHead className="hidden md:table-cell">
+                    <TableHead className="">
                       Role
                     </TableHead>
-                    <TableHead className=" md:table-cell">Last Update</TableHead>
+                    <TableHead className="hidden md:table-cell">Last Update</TableHead>
                     <TableHead className="">Select</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -598,7 +618,7 @@ const Page = () => {
                           </Badge>
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
-                        {new Date().toString()}
+                        {new Date(user.updatedAt).toString()}
                         </TableCell>
                         <TableCell>
                           <Button onClick={() => handleSelect(user)}>Select</Button>
@@ -632,7 +652,6 @@ const Page = () => {
                 </DialogContent>
               </Dialog>
             </CardTitle>
-            <CardDescription>Date: November 23, 2023</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="p-6 grid grid-cols-1 gap-2 text-sm">
@@ -662,11 +681,6 @@ const Page = () => {
                   </div>
                 </div>
         </CardContent>
-        <CardFooter className="flex flex-row items-center border-t bg-muted/50 px-6 py-3">
-          <div className="text-xs text-muted-foreground">
-            Updated <time dateTime="2023-11-23">November 23, 2023</time>
-          </div>
-        </CardFooter>
       </Card>
       <Separator className='my-2'/>
       <Card className="overflow-hidden" x-chunk="dashboard-05-chunk-4">
@@ -674,9 +688,9 @@ const Page = () => {
           <div className="grid gap-0.5">
             <CardTitle className="group flex items-center gap-2 text-lg">
               History
-              <Dialog>
+          <Dialog>
             <DialogTrigger asChild>
-              <Button variant="outline" onClick={() => {}} disabled={!selectUser}>+</Button>
+              <Button variant="outline" disabled={!selectUser}>+</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
@@ -686,18 +700,14 @@ const Page = () => {
             </DialogContent>
           </Dialog>
             </CardTitle>
-            <CardDescription>Date: November 23, 2023</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="p-6 text-sm">
-          <HistoryContext.Provider value={{user: selectUser}}> 
+          <HistoryContext.Provider value={{user: selectUser, status, location, getHistory, history}}> 
             <History />
           </HistoryContext.Provider>
         </CardContent>
         <CardFooter className="flex flex-row items-center border-t bg-muted/50 px-6 py-3">
-          <div className="text-xs text-muted-foreground">
-            Updated <time dateTime="2023-11-23">November 23, 2023</time>
-          </div>
           <Pagination className="ml-auto mr-0 w-auto">
             <PaginationContent>
               <PaginationItem>

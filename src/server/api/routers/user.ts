@@ -18,7 +18,8 @@ getUsers: protectedProcedure
                 middleName: true,
                 title: true,
                 extension: true,
-                role: true
+                role: true,
+                updatedAt: true
             },
           });
           

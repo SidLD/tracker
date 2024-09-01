@@ -238,36 +238,6 @@ export const History = () => {
               <span>{new Date(data.dateFrom).toDateString()}</span>
               <span><ChevronRight /></span>
               <span>{new Date(data.dateTo).toDateString()}</span>
-              <span>
-              <Dialog >
-              <DialogTrigger asChild>
-                <Button variant="ghost" className='w-4 ml-2 mx-1 p-0' onClick={() => handleSelect(data)}>
-                  <Pencil  />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Update History</DialogTitle>
-                </DialogHeader>
-                {makeHistoryForm()}
-            </DialogContent>
-              </Dialog>
-              </span>
-          <div className='w-[100%]'>
-            <Dialog>
-              <DialogTrigger asChild>
-              <Button className='float-right w-8 h-8 p-0 bg-red-500'>
-                <Trash  />
-              </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Confirm Delete</DialogTitle>
-                </DialogHeader>
-                <Button className=' bg-red-500' onClick={async () => { void handleDelete(data.id)}}>Confirm</Button>
-            </DialogContent>
-          </Dialog>
-          </div>
             </div>
             <dl className="grid gap-3">
               <div className="flex items-center justify-between">

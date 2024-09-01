@@ -7,4 +7,5 @@ export type User = {
     middleName: string,
     lastName: string,
     role: Role,
+    updatedAt: Date,
 }
