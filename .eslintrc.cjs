@@ -22,13 +22,9 @@ const config = {
     '@typescript-eslint/no-unsafe-assignment' : 'off',
     '@typescript-eslint/no-unsafe-call' : 'off',
     '@typescript-eslint/no-redundant-type-constituents' : 'off',
-    "@typescript-eslint/consistent-type-imports": [
-      "warn",
-      {
-        "prefer": "type-imports",
-        "fixStyle": "inline-type-imports"
-      }
-    ],
+    '@typescript-eslint/prefer-nullish-coalescing': 'off',
+    "@typescript-eslint/consistent-type-imports": 'off',
+    '@typescript-eslint/no-empty-interface': 'off',
     "@typescript-eslint/no-unused-vars": [
       "warn",
       {
