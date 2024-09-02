@@ -82,7 +82,8 @@ const historySchema = z.object({
   date: z.any(),
 })
 
-const educationalTitles: string[] = [
+export const educationalTitles: string[] = [
+  'All',
   'Elementary School Teacher',
   'High School Teacher',
   'Special Education Teacher',
