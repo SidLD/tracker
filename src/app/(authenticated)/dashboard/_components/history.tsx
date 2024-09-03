@@ -1,6 +1,5 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { Button } from '@/components/ui/button'
-import { ChevronRight, CreditCard, Pencil, Trash } from 'lucide-react'
+import { ChevronRight, CreditCard } from 'lucide-react'
 import React, { useContext, useEffect, useState } from 'react'
 import _axios from '@/lib/axios'
 import { Input } from "@/components/ui/input"
