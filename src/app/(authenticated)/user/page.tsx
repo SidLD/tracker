@@ -326,7 +326,7 @@ const Page = () => {
               name="role"
               render={({ field }) => (
                   <FormItem className=" relative my-5">
-                  <FormLabel>Role</FormLabel>
+                  <FormLabel>Status</FormLabel>
                   <FormControl>
                   <Select   onValueChange={(value) => field.onChange(value)} value={field.value} >
                     <SelectTrigger className="w-[180px]">
@@ -567,7 +567,7 @@ const Page = () => {
                       Name
                     </TableHead>
                     <TableHead className="">
-                      Role
+                      Status
                     </TableHead>
                     <TableHead className="hidden md:table-cell">Last Update</TableHead>
                     <TableHead className="">Select</TableHead>
@@ -643,7 +643,7 @@ const Page = () => {
                       {selectUser && selectUser.lastName}
                   </div>
                   <div className='grid grid-cols-2'>
-                      <Label>Role</Label>
+                      <Label>Statu</Label>
                       {selectUser && selectUser.role.name}
                   </div>
                   <div className='grid grid-cols-2'>

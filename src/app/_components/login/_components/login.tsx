@@ -72,8 +72,14 @@ export function LoginCard() {
   return (
     <Card className="md:w-[450px] lg:w-[450px] w-full m-5 p-2 px-7 rounded-xl">
         <CardHeader>
+            <div className="w-[20px] h-[20px]">
+              <img src={`/logo1.jpg`} className="w-[20px] h-[20px]"/>
+            </div>
             <CardTitle className=" text-center text-3xl font-extrabold">LOGIN</CardTitle>
             <CardDescription className=" text-center text-base">{`Login Portal`}</CardDescription>
+            <div className="w-[20px] h-[20px]">
+              <img src={`/logo1.jpg`} className="w-[20px] h-[20px]"/>
+            </div>
         </CardHeader>
         <CardContent>
                 <Form {...form}>

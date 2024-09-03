@@ -5,8 +5,8 @@ import { type Metadata } from "next";
 import SessionProviderWrapper from "@/lib/SessionProviderWrapper";
 import { TRPCReactProvider } from "@/trpc/react";
 export const metadata: Metadata = {
-  title: "Tracker",
-  description: "Employee Tracker",
+  title: "Public School District Supervisor ",
+  description: "",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 

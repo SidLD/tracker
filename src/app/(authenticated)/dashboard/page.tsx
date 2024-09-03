@@ -294,7 +294,7 @@ const Page = () => {
                           Name
                         </TableHead>
                         <TableHead className="">
-                          Role
+                          Status
                         </TableHead>
                         <TableHead className="hidden md:table-cell">Last Update</TableHead>
                         <TableHead className="">Action</TableHead>
