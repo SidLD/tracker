@@ -42,7 +42,7 @@ import {
   TabsContent,
 } from "@/components/ui/tabs"
 import { type Role } from '@/lib/types/role'
-import { type User } from '@/lib/types/user'
+import { EducationalTitles, type User } from '@/lib/types/user'
 import { Separator } from '@/components/ui/separator'
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
 import { type Status } from '@/lib/types/status'
@@ -53,9 +53,6 @@ import _axios from '@/lib/axios'
 import { History } from "./_components/history"
 import { HistoryContext } from "@/lib/context"
 import { Graph } from "./_components/graph"
-import { educationalTitles } from "../user/page"
-
-export const DashboardContext = createContext<any>({});
 
 const Page = () => {
   const [selectUser, setSelectUser] = useState<User | null>(null)
@@ -191,7 +188,6 @@ const Page = () => {
   }, [])
 
   return (
-    <DashboardContext.Provider value={{}}>
       <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
         <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
           <Tabs defaultValue="week">
@@ -274,7 +270,7 @@ const Page = () => {
                   <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Filter by</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      {educationalTitles.map((title: string, index: number) => {
+                      {EducationalTitles.map((title: string, index: number) => {
                         return  <DropdownMenuCheckboxItem
                         key={index}
                         checked={filters.title ===  title}
@@ -399,7 +395,6 @@ const Page = () => {
           </Card>
         </div>
   </main>
-  </DashboardContext.Provider>
   )
 }
 

@@ -44,7 +44,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { type Role } from '@/lib/types/role'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { type User } from '@/lib/types/user'
+import { EducationalTitles, type User } from '@/lib/types/user'
 import { Separator } from '@/components/ui/separator'
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
 import { useToast } from '@/components/ui/use-toast'
@@ -83,31 +83,6 @@ const historySchema = z.object({
   date: z.any(),
 })
 
-export const educationalTitles: string[] = [
-  'All',
-  'Elementary School Teacher',
-  'High School Teacher',
-  'Special Education Teacher',
-  'English Teacher',
-  'Math Teacher',
-  'Science Teacher',
-  'History Teacher',
-  'Art Teacher',
-  'Music Teacher',
-  'Physical Education Teacher',
-  'Guidance Counselor',
-  'Academic Advisor',
-  'Principal',
-  'Vice Principal',
-  'Department Head',
-  'Curriculum Coordinator',
-  'Instructional Coach',
-  'Teacher Assistant',
-  'Educational Consultant',
-  'School Social Worker',
-  'School Psychologist',
-  'Superintendent'
-];
 
 const Page = () => {
   const { toast } = useToast()
@@ -298,7 +273,7 @@ const Page = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {educationalTitles.map(title => <SelectItem key={title} value={title}>{title}</SelectItem>)}
+                        {EducationalTitles.map((title:string) => <SelectItem key={title} value={title}>{title}</SelectItem>)}
                       </SelectGroup>
                     </SelectContent>
                   </Select>

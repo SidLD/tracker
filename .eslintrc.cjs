@@ -1,45 +1,48 @@
 /** @type {import("eslint").Linter.Config} */
 const config = {
-  "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "project": true
+  parser: "@typescript-eslint/parser",
+  parserOptions: {
+    project: "./tsconfig.json", // Ensure this points to your tsconfig file
+    tsconfigRootDir: __dirname,
+    ecmaVersion: 2020,
+    sourceType: "module",
   },
-  "plugins": [
-    "@typescript-eslint"
-  ],
-  "extends": [
+  plugins: ["@typescript-eslint"],
+  extends: [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
     "next/core-web-vitals",
-    "plugin:@typescript-eslint/recommended-type-checked",
-    "plugin:@typescript-eslint/stylistic-type-checked"
   ],
-  "rules": {
-    "@typescript-eslint/array-type": "off",
-    "@typescript-eslint/consistent-type-definitions": "off",
-    '@typescript-eslint/prefer-optional-chain': 'off',
-    '@typescript-eslint/no-explicit-any': 'off',
-    '@typescript-eslint/no-unsafe-argument': 'off',
-    '@typescript-eslint/no-unsafe-member-access' : 'off',
-    '@typescript-eslint/no-unsafe-assignment' : 'off',
-    '@typescript-eslint/no-unsafe-call' : 'off',
-    '@typescript-eslint/no-redundant-type-constituents' : 'off',
-    '@typescript-eslint/prefer-nullish-coalescing': 'off',
-    "@typescript-eslint/consistent-type-imports": 'off',
-    '@typescript-eslint/no-empty-interface': 'off',
+  rules: {
+    "@typescript-eslint/array-type": ["warn", { default: "array" }],
+    "@typescript-eslint/consistent-type-definitions": ["warn", "interface"],
+    "@typescript-eslint/prefer-optional-chain": "warn",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unsafe-argument": "warn",
+    "@typescript-eslint/no-unsafe-member-access": "warn",
+    "@typescript-eslint/no-unsafe-assignment": "warn",
+    "@typescript-eslint/no-unsafe-call": "warn",
+    "@typescript-eslint/no-redundant-type-constituents": "warn",
+    "@typescript-eslint/prefer-nullish-coalescing": "warn",
+    "@typescript-eslint/consistent-type-imports": "warn",
+    "@typescript-eslint/no-empty-interface": "warn",
     "@typescript-eslint/no-unused-vars": [
       "warn",
       {
-        "argsIgnorePattern": "^_"
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
       }
     ],
-    "@typescript-eslint/require-await": "off",
+    "@typescript-eslint/require-await": "warn",
     "@typescript-eslint/no-misused-promises": [
-      "error",
+      "warn",
       {
-        "checksVoidReturn": {
-          "attributes": false
+        checksVoidReturn: {
+          attributes: true
         }
       }
     ]
-  }
-}
+  },
+};
+
 module.exports = config;
