@@ -2,7 +2,7 @@
 const config = {
   parser: "@typescript-eslint/parser",
   parserOptions: {
-    project: "./tsconfig.json", // Ensure this points to your tsconfig file
+    project: "./tsconfig.json", 
     tsconfigRootDir: __dirname,
     ecmaVersion: 2020,
     sourceType: "module",
@@ -12,7 +12,6 @@ const config = {
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "next/core-web-vitals",
-    "plugin:prettier/recommended" // Optional: Integrates Prettier with ESLint
   ],
   rules: {
     "@typescript-eslint/array-type": ["warn", { default: "array" }],

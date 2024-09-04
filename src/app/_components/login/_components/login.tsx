@@ -71,9 +71,13 @@ export function LoginCard() {
 
   return (
     <Card className="md:w-[450px] lg:w-[450px] w-full m-5 p-2 px-7 rounded-xl">
-        <CardHeader>
-            <CardTitle className=" text-center text-3xl font-extrabold">LOGIN</CardTitle>
-            <CardDescription className=" text-center text-base">{`Login Portal`}</CardDescription>
+        <CardHeader className="flex flex-row gap-5 w-full">
+            <img  width={100} height={100} src="/cid.jpeg" alt="img1"/>
+            <div className="w-full pt-4">
+              <CardTitle className=" text-center text-3xl font-extrabold">LOGIN</CardTitle>
+              <CardDescription className=" text-center text-base">{`Login Portal`}</CardDescription>
+            </div>
+            <img  width={88} height={88} src="/dc.jpeg" alt="img2"/>
         </CardHeader>
         <CardContent>
                 <Form {...form}>
