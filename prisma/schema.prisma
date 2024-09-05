@@ -36,10 +36,10 @@ model Records {
   user        User     @relation(fields: [userId], references: [id])
   dateFrom    DateTime
   dateTo      DateTime
-  statusId    Int
-  status      Status  @relation(fields: [statusId], references: [id])
-  locationId  Int
-  location    Locations @relation(fields: [locationId], references: [id])
+  statusTypeId    Int
+  statustype      StatusCategory  @relation(fields: [statusTypeId], references: [id])
+  destinationId  Int
+  destination    LocationCategory  @relation(fields: [destinationId], references: [id])
 }
 
 model Roles {
@@ -51,7 +51,6 @@ model Roles {
 model Status {
   id        Int   @id @default(autoincrement())
   name      String
-  record    Records[]
   statusCategory StatusCategory[]
 }
 
@@ -60,13 +59,13 @@ model StatusCategory {
   name      String
   statusId Int
   Status Status @relation(fields: [statusId], references: [id])
+  record    Records[]
 }
 
 model Locations { 
   id        Int   @id @default(autoincrement())
   name      String
   destinations LocationCategory[]
-  record    Records[]
 }
 
 model LocationCategory {
@@ -74,6 +73,7 @@ model LocationCategory {
   name      String
   locationId Int
   location Locations @relation(fields: [locationId], references: [id])
+  record    Records[]
 }
 
 
