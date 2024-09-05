@@ -18,6 +18,7 @@ createLocation: protectedProcedure
         if(roleFound){
             throw Error("Role Already Exist")
         }
+        
         return await ctx.db.locations.create({
             data: {
                 name: input.name,
