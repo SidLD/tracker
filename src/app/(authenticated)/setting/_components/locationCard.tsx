@@ -16,8 +16,18 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { createContext, useEffect, useState } from "react";
-import { type Location } from "@/lib/types/location";
+import { Destination, type Location } from "@/lib/types/location";
 import { LocationTable } from "./locationTable";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import _axios from "@/lib/axios";
 
 
 const LocationSchema = z.object({
@@ -35,6 +45,8 @@ export function LocationCard() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(false)
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  const [destinations, setDestinations] = useState<Destination[]>()
+  const [destination, setDestination] = useState<Destination | null>()
   const form = useForm<z.infer<typeof LocationSchema>>({
     resolver: zodResolver(LocationSchema),
     defaultValues: {
@@ -130,6 +142,41 @@ export function LocationCard() {
     form.setValue('name', '');
   }
 
+  const fetchDestination = async () => {
+    try {
+      try {
+        if(selectedLocation){
+          await _axios.get('/api/destination', {
+            params: {
+              location: selectedLocation.id
+            }
+          }).then(({data}) => {
+            setDestinations(data)
+          })
+        }
+      } catch (error) {
+        
+      }
+    } catch (error) {
+      
+    }
+  }
+
+  const handleCreateCategory = async () => {
+    try {
+      if(destination && destination.name?.length > 0 && selectedLocation){
+        _axios.post('/api/destination', {
+          name: destination?.name,
+          location: selectedLocation.id,
+          id: destination.id
+        })
+        await fetchDestination()
+      }
+    } catch (error) {
+      
+    }
+  }
+
   useEffect(() => {
     void getItems()
   }, [])
@@ -138,12 +185,14 @@ export function LocationCard() {
     if(selectedLocation){
       form.setValue("name", selectedLocation.name)
       form.setValue("id", selectedLocation.id)
+      void fetchDestination()
     }
   }, [selectedLocation])
 
   return (
     <div className="block md:flex justify-center p-2 gap-2">
-      <Card className="w-full md:w-1/3 h-fit">
+      <div className="w-full md:w-1/3 h-fit">
+      <Card>
       <Form {...form}>
       <form onSubmit={form.handleSubmit(onCreateItem)}>
         <CardHeader>
@@ -185,10 +234,76 @@ export function LocationCard() {
             <Button type="submit" disabled={loading}>{selectedLocation ? 'Update': 'Save'}</Button>
           </div>
         </CardFooter>
-
         </form>
         </Form>
       </Card>
+      <Separator className="my-2" />
+      {selectedLocation && <Card>
+      <CardHeader>
+          <CardTitle>Destination</CardTitle>
+          <CardDescription>Add Destination</CardDescription>
+        </CardHeader>
+        <CardContent>
+        <Input
+              placeholder="Destination..."
+              onChange={(e:any) => {
+                if(destination){
+                  setDestination({
+                    ...destination,
+                    name: e.target.value,
+                  });
+                }
+              }}
+
+              value={destination?.name}
+            />
+          <Separator  className="my-5"/>
+          <div>
+            <Table>
+              <TableCaption></TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Destination</TableHead>
+                  <TableHead>Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {destinations?.map((destination, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="font-medium">{destination.name}</TableCell>
+                    <TableCell>
+                        <Button onClick={() => {
+                          setDestination({
+                            location: selectedLocation,
+                            name: destination.name,
+                            id: destination.id
+                          })
+                        }}>
+                            Update
+                        </Button>
+                        <Button>
+                            Delete
+                        </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-end">
+          <Button onClick={() => {
+            setDestination({
+              id: null,
+              name: '',
+              location: selectedLocation
+            })
+
+          }}>Clear</Button>
+          <Button onClick={() => {handleCreateCategory()}} disabled={!selectedLocation}>{!!destination ? 'Save' : 'Add'}</Button>
+        </CardFooter>
+      </Card>}
+      </div>
       <Separator className="md:hdden my-5" />
       <Card className="w-full md:w-2/3">
         <CardHeader>

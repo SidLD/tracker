@@ -52,12 +52,28 @@ model Status {
   id        Int   @id @default(autoincrement())
   name      String
   record    Records[]
+  statusCategory StatusCategory[]
+}
+
+model StatusCategory {
+  id        Int   @id @default(autoincrement())
+  name      String
+  statusId Int
+  Status Status @relation(fields: [statusId], references: [id])
 }
 
 model Locations { 
   id        Int   @id @default(autoincrement())
   name      String
+  destinations LocationCategory[]
   record    Records[]
+}
+
+model LocationCategory {
+  id        Int   @id @default(autoincrement())
+  name      String
+  locationId Int
+  location Locations @relation(fields: [locationId], references: [id])
 }
 
 
