@@ -16,8 +16,19 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { createContext, useEffect, useState } from "react";
-import { type Status } from "@/lib/types/status";
+import { StatusType ,type Status } from "@/lib/types/status";
+
 import { StatusTable } from "./statusTable";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import _axios from "@/lib/axios";
 
 
 const LocationSchema = z.object({
@@ -35,6 +46,8 @@ export function StatusCard() {
   const [locations, setLocations] = useState<Status[]>([]);
   const [loading, setLoading] = useState(false)
   const [selectedItem, setSelectedItem] = useState<Status | null>(null);
+  const [statusTypes, setStatusTypes] = useState<StatusType[]>()
+  const [statusType, setStatusType] = useState<StatusType | null>()
   const form = useForm<z.infer<typeof LocationSchema>>({
     resolver: zodResolver(LocationSchema),
     defaultValues: {
@@ -130,6 +143,42 @@ export function StatusCard() {
     form.setValue('name', '');
   }
 
+
+  const fetchDestination = async () => {
+    try {
+      try {
+        if(selectedItem){
+          await _axios.get('/api/statustype', {
+            params: {
+              status: selectedItem.id
+            }
+          }).then(({data}) => {
+            setStatusTypes(data)
+          })
+        }
+      } catch (error) {
+        
+      }
+    } catch (error) {
+      
+    }
+  }
+
+  const handleCreateCategory = async () => {
+    try {
+      if(statusType && statusType.name?.length > 0 && selectedItem){
+        _axios.post('/api/statustype', {
+          name: statusType?.name,
+          status: selectedItem.id,
+          id: statusType.id
+        })
+        await fetchDestination()
+      }
+    } catch (error) {
+      
+    }
+  }
+
   useEffect(() => {
     void getItems()
   }, [])
@@ -138,12 +187,15 @@ export function StatusCard() {
     if(selectedItem){
       form.setValue("name", selectedItem.name)
       form.setValue("id", selectedItem.id)
+      void fetchDestination()
     }
   }, [selectedItem])
 
   return (
     <div className="block md:flex justify-center p-2 gap-2">
-      <Card className="w-full md:w-1/3 h-fit">
+
+    <div className="w-full md:w-1/3 h-fit">
+      <Card >
       <Form {...form}>
       <form onSubmit={form.handleSubmit(onCreateItem)}>
         <CardHeader>
@@ -189,6 +241,73 @@ export function StatusCard() {
         </form>
         </Form>
       </Card>
+      <Separator className="my-2" />
+      {selectedItem && <Card>
+      <CardHeader>
+          <CardTitle>Status Type</CardTitle>
+          <CardDescription>Add Status Type</CardDescription>
+        </CardHeader>
+        <CardContent>
+        <Input
+              placeholder="Destination..."
+              onChange={(e:any) => {
+                if(statusType){
+                  setStatusType({
+                    ...statusType,
+                    name: e.target.value,
+                  });
+                }
+              }}
+
+              value={statusType?.name}
+            />
+          <Separator  className="my-5"/>
+          <div>
+            <Table>
+              <TableCaption></TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Destination</TableHead>
+                  <TableHead>Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {statusTypes?.map((statusType, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="font-medium">{statusType.name}</TableCell>
+                    <TableCell>
+                        <Button onClick={() => {
+                          setStatusType({
+                            status: selectedItem,
+                            name: statusType.name,
+                            id: statusType.id
+                          })
+                        }}>
+                            Update
+                        </Button>
+                        <Button>
+                            Delete
+                        </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-end">
+          <Button onClick={() => {
+            setStatusType({
+              id: null,
+              name: '',
+              status: selectedItem
+            })
+
+          }}>Clear</Button>
+          <Button onClick={() => {handleCreateCategory()}} disabled={!selectedItem}>{!!statusType ? 'Save' : 'Add'}</Button>
+        </CardFooter>
+      </Card>}
+      </div>
       <Separator className="md:hdden my-5" />
       <Card className="w-full md:w-2/3">
         <CardHeader>

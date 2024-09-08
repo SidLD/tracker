@@ -4,13 +4,7 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 export const locationRouter = createTRPCRouter({  
 getLocation: protectedProcedure
     .query(async({ ctx, input }) => {
-        const locations = await ctx.db.locations.findMany({
-            where: {
-                NOT: {
-                    name: 'admin'
-                }
-            }
-        })
+        const locations = await ctx.db.locations.findMany({})
         return locations;
     }),
 createLocation: protectedProcedure
@@ -24,6 +18,7 @@ createLocation: protectedProcedure
         if(roleFound){
             throw Error("Role Already Exist")
         }
+        
         return await ctx.db.locations.create({
             data: {
                 name: input.name,

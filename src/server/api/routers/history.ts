@@ -54,7 +54,7 @@ updateHistory: protectedProcedure
             where: { id: input.id}
         })
         if(!roleFound){
-            throw Error("Role Does not Exist")
+            throw Error("History Does not Exist")
         }
         return await ctx.db.records.update({
             where: {id: input.id},
