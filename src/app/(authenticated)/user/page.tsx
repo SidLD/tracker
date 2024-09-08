@@ -3,10 +3,20 @@ import React, { useEffect, useState } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
+  Cloud,
   File,
+  Github,
+  Keyboard,
+  LifeBuoy,
+  LogOut,
+  Mail,
+  MessageSquare,
   Pencil,
+  Plus,
+  PlusCircle,
+  UserPlus,
+  Users,
 } from "lucide-react"
-
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -38,24 +48,22 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Label } from '@/components/ui/label'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuGroup, DropdownMenuLabel, DropdownMenuPortal, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
 import { z } from 'zod'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { type Role } from '@/lib/types/role'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { EducationalTitles, type User } from '@/lib/types/user'
 import { Separator } from '@/components/ui/separator'
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
 import { useToast } from '@/components/ui/use-toast'
-import { History } from './_components/history'
-import { type Status } from '@/lib/types/status'
+import { type StatusType, type Status } from '@/lib/types/status'
 import { type Location } from '@/lib/types/location'
 import { addDays, format } from "date-fns"
 import { Calendar as CalendarIcon } from "lucide-react"
 import { type DateRange } from "react-day-picker"
 import { type History as historyType } from '@/lib/types/history'
- 
 import { cn } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
 import {
@@ -65,7 +73,7 @@ import {
 } from "@/components/ui/popover"
 import _axios from '@/lib/axios'
 import { HistoryContext } from '@/lib/context'
-
+import { History } from './_components/history'
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -73,15 +81,18 @@ const formSchema = z.object({
   firstName: z.string().min(3, 'Min 3'),
   middleName: z.string().optional(),
   lastName: z.string().min(3, 'Min 3'),
-  role: z.string().min(1, 'Role is Required'),
+  status: z.number().optional(),
+  location: z.number().optional(),
 })
 
 const historySchema = z.object({
   id: z.string().optional(),
-  status: z.string(),
-  location: z.string(),
+  status: z.number(),
+  location: z.number(),
   date: z.any(),
 })
+
+const itemsPerPage = 10; // Number of items to display per page
 
 
 const Page = () => {
@@ -93,11 +104,11 @@ const Page = () => {
       firstName:"",
       middleName:"",
       lastName:"",
-      role:"",
+      status: -1,
+      location: -1
     },
   })
   const [selectUser, setSelectUser] = useState<User | null>(null)
-  const [roles, setRoles] = useState<Role[]>([]);
   const [status, setStatus] = useState<Status[]>([]);
   const [location, setLocation] = useState<Location[]>([]);
   const [users, setUsers] = useState<User[]>([])
@@ -106,8 +117,8 @@ const Page = () => {
   const historyForm = useForm<z.infer<typeof historySchema>>({
     resolver: zodResolver(historySchema),
     defaultValues: {
-      status: '',
-      location: ''
+      status: 0,
+      location: 0
     },
   })
 
@@ -174,23 +185,6 @@ const Page = () => {
     setUsers(await response.json() as User[])
   }
 
-  const getRoles = async () => {
-    try {
-      const response = await fetch('/api/role', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      setRoles(await response.json());
-    } catch (error) {
-      console.error("Error fetching roles:", error);
-    }
-  };
-
   const getLocation = async () => {
     try {
       const response = await fetch('/api/location', {
@@ -203,7 +197,7 @@ const Page = () => {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      setLocation(await response.json())
+      setLocation(await response.json() as Location[])
     } catch (error) {
       console.error("Error fetching roles:", error);
     }
@@ -220,11 +214,13 @@ const Page = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-      setStatus(await response.json())
+      const data = await response.json() as Status[];
+      setStatus(data)
     } catch (error) {
       console.error("Error fetching roles:", error);
     }
   };
+
   const [date, setDate] = React.useState<DateRange | undefined>({
     from: new Date(2022, 0, 20),
     to: addDays(new Date(2022, 0, 20), 20),
@@ -241,7 +237,8 @@ const Page = () => {
       form.setValue('firstName', selectUser.firstName)
       form.setValue('middleName', selectUser.middleName)
       form.setValue('lastName', selectUser.lastName)
-      form.setValue('role', selectUser.role.id.toString())
+      // form.setValue('status')
+      // form.setValue('location' )
     }
   }
 
@@ -265,15 +262,15 @@ const Page = () => {
               name="title"
               render={({ field }) => (
                 <FormItem className=" relative my-5">
-                  <FormLabel>Title</FormLabel>
+                  <FormLabel>Position/Designation</FormLabel>
                   <FormControl>
                   <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
                     <SelectTrigger className="w-[280px]">
-                      <SelectValue placeholder="Select Title" {...field}/>
+                      <SelectValue placeholder="Select..." {...field}/>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {EducationalTitles.map((title:string) => <SelectItem key={title} value={title}>{title}</SelectItem>)}
+                        {EducationalTitles.filter(et => et != 'All').map((title:string) => <SelectItem key={title} value={title}>{title}</SelectItem>)}
                       </SelectGroup>
                     </SelectContent>
                   </Select>
@@ -289,7 +286,7 @@ const Page = () => {
                   <FormItem className=" relative my-5">
                   <FormLabel>First Name</FormLabel>
                   <FormControl>
-                      <Input placeholder="Input Title" {...field} />
+                      <Input placeholder="Input First Name" {...field} />
                   </FormControl>
                   <FormMessage className=" absolute -bottom-5"/>
                   </FormItem>
@@ -302,7 +299,7 @@ const Page = () => {
                   <FormItem className=" relative my-5">
                   <FormLabel>Middle Name</FormLabel>
                   <FormControl>
-                      <Input placeholder="Input Title" {...field} />
+                      <Input placeholder="Input Middle Name" {...field} />
                   </FormControl>
                   <FormMessage className=" absolute -bottom-5"/>
                   </FormItem>
@@ -315,29 +312,7 @@ const Page = () => {
                   <FormItem className=" relative my-5">
                   <FormLabel>Last Name</FormLabel>
                   <FormControl>
-                      <Input placeholder="Input Title" {...field} />
-                  </FormControl>
-                  <FormMessage className=" absolute -bottom-5"/>
-                  </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="role"
-              render={({ field }) => (
-                  <FormItem className=" relative my-5">
-                  <FormLabel>Status</FormLabel>
-                  <FormControl>
-                  <Select   onValueChange={(value) => field.onChange(value)} value={field.value} >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Select Role" {...field} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {roles.map(role => <SelectItem key={role.id} value={role.id.toString()}>{role.name}</SelectItem>)}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                      <Input placeholder="Input Last Name" {...field} />
                   </FormControl>
                   <FormMessage className=" absolute -bottom-5"/>
                   </FormItem>
@@ -365,20 +340,39 @@ const Page = () => {
             <FormField
               control={historyForm.control}
               name="location"
-              render={({ field }) => (
+              render={({ field: { onChange, onBlur, value } }) => (
                 <FormItem className=" relative my-5">
                   <FormLabel>Location</FormLabel>
                   <FormControl>
-                  <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
-                    <SelectTrigger className="w-[280px]">
-                      <SelectValue placeholder="Select Title" {...field}/>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {location.map(location => <SelectItem key={location.id} value={location.id.toString()}>{location.name}</SelectItem>)}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline">Select Here</Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56">
+                      <DropdownMenuLabel>Location - Destination</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuGroup>
+                            {location.map((loc: Location, index: number) => {
+                              return <>
+                                <DropdownMenuSub>
+                                  <DropdownMenuSubTrigger key={index}>
+                              <span>{loc.name}</span>
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuPortal>
+                              <DropdownMenuSubContent>
+                                  {loc.destinations?.map((des, index) => {
+                                    return <DropdownMenuItem key={index} onClick={() => {onChange(des.id)}} >
+                                    <span>{des.name}</span>
+                                  </DropdownMenuItem>
+                                  })}
+                              </DropdownMenuSubContent>
+                            </DropdownMenuPortal>
+                        </DropdownMenuSub>
+                        </>
+                            })}
+                      </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   </FormControl>
                   <FormMessage className=" absolute -bottom-5"/>
                   </FormItem>
@@ -387,20 +381,39 @@ const Page = () => {
             <FormField
               control={historyForm.control}
               name="status"
-              render={({ field }) => (
+              render={({ field: { onChange, onBlur, value } }) => (
                 <FormItem className=" relative my-5">
                   <FormLabel>Status</FormLabel>
                   <FormControl>
-                  <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
-                    <SelectTrigger className="w-[280px]">
-                      <SelectValue placeholder="Select Title" {...field}/>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {status.map(location => <SelectItem key={location.id} value={location.id.toString()}>{location.name}</SelectItem>)}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline">Select Here</Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56">
+                      <DropdownMenuLabel>Status</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuGroup>
+                            {status.map((status: Status, index: number) => {
+                              return <>
+                                <DropdownMenuSub>
+                                  <DropdownMenuSubTrigger key={index}>
+                              <span>{JSON.stringify(status)}</span>
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuPortal>
+                              <DropdownMenuSubContent>
+                                  {status.statusCategory?.map((des: StatusType, index: number) => {
+                                    return <DropdownMenuItem key={index} onClick={() => {onChange(des.id)}}>
+                                    <span>{des.name}</span>
+                                  </DropdownMenuItem>
+                                  })}
+                              </DropdownMenuSubContent>
+                            </DropdownMenuPortal>
+                        </DropdownMenuSub>
+                        </>
+                            })}
+                      </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   </FormControl>
                   <FormMessage className=" absolute -bottom-5"/>
                   </FormItem>
@@ -507,10 +520,21 @@ const Page = () => {
     }
   }
 
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(users.length / itemsPerPage);
+
+  // Calculate the subset of users to display on the current page
+  const paginatedUsers = users.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   useEffect(() => {
     const init = async (): Promise<void> => {
       await Promise.all([
-        getRoles(),
+        // getRoles(),
         getUsers(),
         getLocation(),
         getStatus(),
@@ -533,7 +557,8 @@ const Page = () => {
                   form.resetField('firstName')
                   form.resetField('middleName')
                   form.resetField('lastName')
-                  form.resetField('role')
+                  form.resetField('status')
+                  form.resetField('location')
                   form.resetField('title')
                 }}>
                 <File className="h-3.5 w-3.5 mr-2" />
@@ -557,46 +582,72 @@ const Page = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="hidden sm:table-cell">
-                      Title
-                    </TableHead>
-                    <TableHead className="hidden sm:table-cell">
-                      Name
-                    </TableHead>
-                    <TableHead className="">
-                      Status
-                    </TableHead>
-                    <TableHead className="hidden md:table-cell">Last Update</TableHead>
-                    <TableHead className="">Select</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                {users.map((user, index) => (
-                      <TableRow key={index} className="bg-accent">
-                        <TableCell>
-                          <div className="font-medium">{user.title}</div>
-                        </TableCell>
-                        <TableCell className="hidden sm:table-cell">
-                        <div className="font-medium">{user.firstName} {user.lastName}</div>
-                        </TableCell>
-                        <TableCell className="hidden sm:table-cell">
-                          <Badge className="text-xs" variant="secondary">
-                            {user.role.name}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                        {new Date(user.updatedAt).toString()}
-                        </TableCell>
-                        <TableCell>
-                          <Button onClick={() => handleSelect(user)}>Select</Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
+            <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="hidden sm:table-cell">
+              Position/Designation
+            </TableHead>
+            <TableHead className="hidden sm:table-cell">
+              Name
+            </TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Location</TableHead>
+            <TableHead className="hidden md:table-cell">Last Update</TableHead>
+            <TableHead>Select</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paginatedUsers.map((user, index) => (
+            <TableRow key={index} className="bg-accent">
+              <TableCell>
+                <div className="font-medium">{user.title}</div>
+              </TableCell>
+              <TableCell className="hidden sm:table-cell">
+                <div className="font-medium">{user.firstName} {user.lastName}</div>
+              </TableCell>
+              <TableCell>
+                <Badge className="text-xs" variant="secondary">
+                    {user.record != undefined ? user?.record[0]?.statustype.name : ""}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <Badge className="text-xs" variant="secondary">
+                    {user.record != undefined ? user?.record[0]?.destination.name : ""}
+                </Badge>
+              </TableCell>
+              <TableCell className="hidden md:table-cell">
+                {new Date(user.updatedAt).toString()}
+              </TableCell>
+              <TableCell>
+                <Button onClick={() =>{ handleSelect(user)}}>Select</Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      {/* Pagination Controls */}
+      <div className="pagination-controls flex justify-between items-center mt-4">
+        <button 
+          onClick={() => setCurrentPage(prevPage => Math.max(prevPage - 1, 1))}
+          disabled={currentPage === 1}
+          className="px-4 py-2 bg-gray-300 rounded"
+        >
+          Previous
+        </button>
+        <span>
+          Page {currentPage} of {totalPages}
+        </span>
+        <button 
+          onClick={() => setCurrentPage(prevPage => Math.min(prevPage + 1, totalPages))}
+          disabled={currentPage === totalPages}
+          className="px-4 py-2 bg-gray-300 rounded"
+        >
+          Next
+        </button>
+      </div>
+              
             </CardContent>
           </Card>
         </TabsContent>
@@ -610,7 +661,7 @@ const Page = () => {
               Details
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="ghost" className='w-5 mx-1 p-0' onClick={handleUpdate} disabled={!selectUser}>
+                  <Button variant="ghost" className='w-5 mx-1 p-0' onClick={() => {handleUpdate()}} disabled={!selectUser}>
                     <Pencil className='' />
                   </Button>
                 </DialogTrigger>
@@ -627,24 +678,24 @@ const Page = () => {
         <CardContent className="p-6 grid grid-cols-1 gap-2 text-sm">
                 <div>
                   <div className='grid grid-cols-2'>
-                      <Label>Title</Label>
-                      {selectUser && selectUser.title}
+                      <Label>Position/Designation</Label>
+                      {selectUser?.title}
                   </div>
                   <div className='grid grid-cols-2'>
                       <Label>First Name</Label>
-                      {selectUser && selectUser.firstName}
+                      {selectUser?.firstName}
                   </div>
                   <div className='grid grid-cols-2'>
                       <Label>Middle Name</Label>
-                      {selectUser && selectUser.middleName}
+                      {selectUser?.middleName}
                   </div>
                   <div className='grid grid-cols-2'>
                       <Label>Last Name</Label>
-                      {selectUser && selectUser.lastName}
+                      {selectUser?.lastName}
                   </div>
                   <div className='grid grid-cols-2'>
-                      <Label>Statu</Label>
-                      {selectUser && selectUser.role.name}
+                      <Label>Status</Label>
+                      
                   </div>
                   <div className='grid grid-cols-2'>
                       <Label>Current Status</Label>

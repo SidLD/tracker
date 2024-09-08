@@ -12,8 +12,18 @@ getHistory: protectedProcedure
                 userId: input.userId
             },
             include:{
-                status: true,
-                location: true
+                statustype: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                },
+                destination: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                }
             },
             orderBy: {
                 dateFrom: "asc"
@@ -26,8 +36,8 @@ ceateHistory: protectedProcedure
         user : z.string(),
         dateFrom: z.string(),
         dateTo : z.string(),
-        status: z.string(), 
-        location : z.string()
+        status: z.number(), 
+        location : z.number()
     }))
     .mutation(async({ ctx, input }) => {
         console.log('test',input)
@@ -36,8 +46,8 @@ ceateHistory: protectedProcedure
                 userId: input.user,
                 dateFrom: new Date(input.dateFrom),
                 dateTo: new Date(input.dateTo),
-                statusId: parseInt(input.status),
-                locationId: parseInt(input.location)
+                statusTypeId: input.status,
+                destinationId:input.location
             }
         })
     }),
@@ -61,8 +71,8 @@ updateHistory: protectedProcedure
             data: {
                dateFrom: input.dateFrom,
                dateTo: input.dateTo,
-               statusId: parseInt(input.status),
-               locationId: parseInt(input.location)
+               statusTypeId: parseInt(input.status),
+               destinationId: parseInt(input.location)
             }
         })
     }),

@@ -27,7 +27,7 @@ model User {
   role          Roles @relation(fields: [roleId], references: [id])
   record        Records[]
   createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  updatedAt     DateTime  @updatedAt
 }
 
 model Records {
@@ -36,10 +36,12 @@ model Records {
   user        User     @relation(fields: [userId], references: [id])
   dateFrom    DateTime
   dateTo      DateTime
-  statusTypeId    Int
+  statusTypeId   Int
   statustype      StatusCategory  @relation(fields: [statusTypeId], references: [id])
   destinationId  Int
   destination    LocationCategory  @relation(fields: [destinationId], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 model Roles {

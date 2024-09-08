@@ -6,12 +6,20 @@ export type User = {
     firstName: string,
     middleName: string,
     lastName: string,
-    role: Role,
     updatedAt: Date,
+    record: History[] | undefined
 }
 
 export const EducationalTitles: string[] = [
     'All',
+    'Supervisor - English',
+    'Supervisor - Science',
+    'Supervisor - Math',
+    'Supervisor - Filipino',
+    'Supervisor - MAPEH',
+    'Supervisor - TLE',
+    'Supervisor - ArPa',
+    'Supervisor - ESP',
     'Elementary School Teacher',
     'High School Teacher',
     'Special Education Teacher',
@@ -33,5 +41,5 @@ export const EducationalTitles: string[] = [
     'Educational Consultant',
     'School Social Worker',
     'School Psychologist',
-    'Superintendent'
+    'Superintendent',
   ];

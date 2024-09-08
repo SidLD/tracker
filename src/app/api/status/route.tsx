@@ -1,31 +1,58 @@
-// api > hello > route.ts
 import { api } from "@/trpc/server";
-import {type NextRequest, NextResponse} from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 export type Payload = {
     id: any | undefined,
     name: string;
 }
 
-export async function POST (request: NextRequest){
-    const payload = await request.json() as Payload
-    const data = await api.status.createStatus(payload)
-    return NextResponse.json(data);
+// Create status (POST)
+export async function POST(request: NextRequest) {
+    try {
+        const payload = await request.json() as Payload;
+        const data = await api.status.createStatus(payload);
+        return NextResponse.json(data);
+    } catch (error:any) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+    }
 }
 
-export async function GET (request: NextRequest){
-    const data = await api.status.getStatus()
-    return NextResponse.json(data);
+// Get status (GET)
+export async function GET(request: NextRequest) {
+    try {
+        const data = await api.status.getStatus();
+        return NextResponse.json(data);
+    } catch (error:any) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+    }
 }
 
-export async function PUT (request: NextRequest){
-    const payload = await request.json() as Payload
-    const data = await api.status.updateStatus(payload)
-    return NextResponse.json(data);
+// Update status (PUT)
+export async function PUT(request: NextRequest) {
+    try {
+        const payload = await request.json() as Payload;
+        const data = await api.status.updateStatus(payload);
+        return NextResponse.json(data);
+    } catch (error:any) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+    }
 }
 
-export async function DELETE (request: NextRequest){
-    const payload = await request.json() as Payload
-    const data = await api.status.deleteStatus(payload)
-    return NextResponse.json(data);
+// Delete status (DELETE)
+export async function DELETE(request: NextRequest) {
+    try {
+        const payload = await request.json() as Payload;
+        
+        if (!payload.id) {
+            return NextResponse.json({ error: "ID is required" }, { status: 400 });
+        }
+
+        const data = await api.status.deleteStatus({
+            id: payload.id,
+            name: ""
+        });
+        return NextResponse.json(data);
+    } catch (error:any) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+    }
 }

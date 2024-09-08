@@ -9,6 +9,16 @@ getStatus: protectedProcedure
                 NOT: {
                     name: 'admin'
                 }
+            },
+            include: {
+                statusCategory: {
+                    select: {
+                        name: true,
+                        id: true,
+                        record: false
+                    }
+                },
+            
             }
         })
         return status;

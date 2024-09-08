@@ -156,11 +156,9 @@ export function StatusCard() {
             setStatusTypes(data)
           })
         }
-      } catch (error) {
-        
-      }
+      } catch (error) { /* empty */ }
     } catch (error) {
-      
+      { /* empty */ }
     }
   }
 
@@ -175,7 +173,7 @@ export function StatusCard() {
         await fetchDestination()
       }
     } catch (error) {
-      
+      { /* empty */ }
     }
   }
 
@@ -249,7 +247,7 @@ export function StatusCard() {
         </CardHeader>
         <CardContent>
         <Input
-              placeholder="Destination..."
+              placeholder="Type..."
               onChange={(e:any) => {
                 if(statusType){
                   setStatusType({
@@ -267,7 +265,7 @@ export function StatusCard() {
               <TableCaption></TableCaption>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Destination</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead>Action</TableHead>
                 </TableRow>
               </TableHeader>
@@ -275,12 +273,13 @@ export function StatusCard() {
                 {statusTypes?.map((statusType, index) => (
                   <TableRow key={index}>
                     <TableCell className="font-medium">{statusType.name}</TableCell>
-                    <TableCell>
-                        <Button onClick={() => {
+                    <TableCell className="grid grid-cols-2 gap-2">
+                        <Button variant={'outline'} className="" onClick={() => {
                           setStatusType({
                             status: selectedItem,
                             name: statusType.name,
-                            id: statusType.id
+                            id: statusType.id,
+                            statusCategory: undefined
                           })
                         }}>
                             Update
@@ -295,16 +294,17 @@ export function StatusCard() {
             </Table>
           </div>
         </CardContent>
-        <CardFooter className="flex justify-end">
-          <Button onClick={() => {
+        <CardFooter className="grid grid-cols-2 gap-2">
+          <Button variant={'outline'} onClick={() => {
             setStatusType({
               id: null,
               name: '',
-              status: selectedItem
+              status: selectedItem,
+              statusCategory: undefined
             })
 
           }}>Clear</Button>
-          <Button onClick={() => {handleCreateCategory()}} disabled={!selectedItem}>{!!statusType ? 'Save' : 'Add'}</Button>
+          <Button onClick={() => {handleCreateCategory()}} disabled={!selectedItem}>{statusType ? 'Save' : 'Add'}</Button>
         </CardFooter>
       </Card>}
       </div>

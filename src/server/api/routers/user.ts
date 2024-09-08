@@ -17,8 +17,27 @@ getUsers: protectedProcedure
                 middleName: true,
                 title: true,
                 extension: true,
-                role: true,
-                updatedAt: true
+                updatedAt: true,
+                record: {
+                    select: {
+                        destination: {
+                            select: {
+                                id: true,
+                                name: true,
+                            },
+                        },
+                        statustype: {
+                            select: {
+                                id: true,
+                                name: true,
+                            },
+                        }
+                    },
+                    orderBy: {
+                        updatedAt: 'desc'
+                    },
+                    take: 1
+                }
             },
           });
           

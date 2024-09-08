@@ -15,20 +15,9 @@ import {
 const Page = () => {
     return (
     <Tabs defaultValue="role" className="">
-      <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="role">Role</TabsTrigger>
-        <TabsTrigger value="location">Location</TabsTrigger>
-        <TabsTrigger value="status">Status</TabsTrigger>
-      </TabsList>
-        <TabsContent value="role">
-          <RoleCard/>
-        </TabsContent>
-        <TabsContent value="location">
           <LocationCard/>
-        </TabsContent>
-        <TabsContent value="status">
+          <Separator />
           <StatusCard />
-        </TabsContent>
     </Tabs>
     );
 }

@@ -151,15 +151,11 @@ export function LocationCard() {
               location: selectedLocation.id
             }
           }).then(({data}) => {
-            setDestinations(data)
+            setDestinations(data as Destination[])
           })
         }
-      } catch (error) {
-        
-      }
-    } catch (error) {
-      
-    }
+      } catch (error) { /* empty */ }
+    } catch (error) { /* empty */ }
   }
 
   const handleCreateCategory = async () => {
@@ -172,9 +168,7 @@ export function LocationCard() {
         })
         await fetchDestination()
       }
-    } catch (error) {
-      
-    }
+    } catch (error) { /* empty */ }
   }
 
   useEffect(() => {
@@ -271,8 +265,8 @@ export function LocationCard() {
                 {destinations?.map((destination, index) => (
                   <TableRow key={index}>
                     <TableCell className="font-medium">{destination.name}</TableCell>
-                    <TableCell>
-                        <Button onClick={() => {
+                    <TableCell className="grid grid-cols-2 gap-2">
+                        <Button variant='outline' onClick={() => {
                           setDestination({
                             location: selectedLocation,
                             name: destination.name,
@@ -291,8 +285,8 @@ export function LocationCard() {
             </Table>
           </div>
         </CardContent>
-        <CardFooter className="flex justify-end">
-          <Button onClick={() => {
+        <CardFooter className="grid grid-cols-2 gap-2">
+          <Button variant={'outline'} onClick={() => {
             setDestination({
               id: null,
               name: '',
@@ -300,7 +294,7 @@ export function LocationCard() {
             })
 
           }}>Clear</Button>
-          <Button onClick={() => {handleCreateCategory()}} disabled={!selectedLocation}>{!!destination ? 'Save' : 'Add'}</Button>
+          <Button onClick={() => {handleCreateCategory()}} disabled={!selectedLocation}>{destination ? 'Save' : 'Add'}</Button>
         </CardFooter>
       </Card>}
       </div>

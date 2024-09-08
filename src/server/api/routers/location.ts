@@ -4,7 +4,17 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 export const locationRouter = createTRPCRouter({  
 getLocation: protectedProcedure
     .query(async({ ctx, input }) => {
-        const locations = await ctx.db.locations.findMany({})
+        const locations = await ctx.db.locations.findMany({
+            include: {
+                destinations: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                }
+            }
+        })
+        
         return locations;
     }),
 createLocation: protectedProcedure

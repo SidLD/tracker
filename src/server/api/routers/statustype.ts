@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { ApiError } from "next/dist/server/api-utils";
+import { TRPCError } from "@trpc/server";
 
 export const statustypeRouter = createTRPCRouter({  
 getStatusTypes: protectedProcedure
@@ -29,7 +31,10 @@ createStatusTypes: protectedProcedure
             }
         })
         if(checkDestination){
-            throw Error("Category Does Exist")
+            throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message: 'Category already Exist',
+              });
         }
         return await ctx.db.statusCategory.upsert({
             where: {
