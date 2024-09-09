@@ -11,11 +11,8 @@ const getCurrentMonthDates = () => {
     const end = new Date(now.getFullYear(), now.getMonth() + 1, 0); 
     return { start, end };
   };
-
   const [isClient, setIsClient] = useState(false);
-  
   const { start: monthStart, end: monthEnd } = getCurrentMonthDates();
-  
   const events = [
     {
       id: 1,
@@ -41,11 +38,10 @@ const getCurrentMonthDates = () => {
   ];
 
   if (!isClient) {
-    return null; // Or a loading spinner
+    return <></>; 
   }
 
   useEffect(() => {
-    // This will run only in the browser
     setIsClient(true);
   }, []);
 
