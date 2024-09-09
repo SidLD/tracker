@@ -5,9 +5,10 @@ export const analysisRouter = createTRPCRouter({
 getAnalysis: protectedProcedure
     .query(async({ ctx , input}) => {
         const userCount = await ctx.db.user.count()
-        
+        const numberOfLocation = await ctx.db.locationCategory.count()
         return {
-            userCount: userCount-1
+            userCount: userCount-1,
+            locationCount: numberOfLocation
         };
     }),
 getMonthRecords : protectedProcedure

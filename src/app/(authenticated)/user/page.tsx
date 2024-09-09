@@ -558,28 +558,41 @@ const Page = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(users.length / itemsPerPage);
-  const paginatedUsers = users.slice(
+
+  const filteredUsers = (users: User[]) => {
+    const { title, search, statustype, destination } = filters;
+
+    return users.filter(user => {
+        const latestRecord = user?.record?.[0] ?? null;
+        let destinationMatch = true
+        let statusMatch = true
+        let titleMatch = true
+        let nameMatch = true;
+       
+        if(statustype != 'All' && statustype != ''){
+           statusMatch = latestRecord?.statustype?.name === statustype;
+        }
+
+        if(destination != 'All' && destination != '') {
+          destinationMatch = latestRecord?.destination?.name === destination;
+        }
+
+        if(title != 'All' && title != ''){
+          titleMatch = user.title === title;
+        }
+
+        if(search != ''){
+          nameMatch =  user.firstName.toLowerCase().includes(search?.toLowerCase()) || 
+              user.lastName.toLowerCase().includes(search?.toLowerCase());
+        }
+        return destinationMatch && statusMatch && titleMatch && nameMatch;
+    });
+  };
+
+  const paginatedUsers = filteredUsers(users).slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
-  const filteredUsers = () => {
-    return users.filter(user => {
-        const latestRecord = user?.record?.[0] ?? null;
-        const titleMatch = filters.title === 'All' || filters.title === '' || user.title === filters.title;
-        let statusMatch = true;
-        let destinationMatch = true;
-        const nameMatch = filters.search
-            ? (user.firstName.toLowerCase().includes(filters.search.toLowerCase()) || 
-               user.lastName.toLowerCase().includes(filters.search.toLowerCase()))
-            : true;
-        if (latestRecord) {
-            statusMatch = filters.statustype === 'All' || filters.statustype === '' || latestRecord.statustype?.name === filters.statustype;
-            destinationMatch = filters.destination === 'All' || filters.destination === '' || latestRecord.destination?.name === filters.destination;
-        }
-        return titleMatch && statusMatch && nameMatch && destinationMatch;
-    });
-};
 
   useEffect(() => {
     const init = async (): Promise<void> => {
@@ -642,7 +655,7 @@ const Page = () => {
                       <DropdownMenuLabel>Location - Destination</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuGroup>
-                        <DropdownMenuItem onClick={() => setFilters({ ...filters, destination: 'All' })}>
+                        <DropdownMenuItem onClick={() => setFilters({ ...filters, destination: '' })}>
                           <span>All</span>
                         </DropdownMenuItem>
                         {location.map((loc: Location, index: number) => (
@@ -673,7 +686,7 @@ const Page = () => {
                       <DropdownMenuLabel>Status - Category</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuGroup>
-                        <DropdownMenuItem onClick={() => setFilters({ ...filters, statustype: 'All' })}>
+                        <DropdownMenuItem onClick={() => setFilters({ ...filters, statustype: '' })}>
                           <span>All</span>
                         </DropdownMenuItem>
                         {status.map((status: Status, index: number) => (
@@ -695,7 +708,7 @@ const Page = () => {
                       </DropdownMenuGroup>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  <Button onClick={() => setFilters({ ...filters, destination: '' })}>Clear</Button>
+                  <Button onClick={() => setFilters({ ...filters, statustype: '' })}>Clear</Button>
                 </div>
               <Separator className='my-2' />
             <Table>

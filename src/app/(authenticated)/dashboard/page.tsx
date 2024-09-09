@@ -45,6 +45,7 @@ import {
   Tabs,
   TabsContent,
 } from "@/components/ui/tabs";
+import { type Role } from '@/lib/types/role';
 import { type User } from '@/lib/types/user';
 import { Separator } from '@/components/ui/separator';
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
@@ -56,6 +57,7 @@ import _axios from '@/lib/axios';
 import { History } from "./_components/history";
 import { HistoryContext } from "@/lib/context";
 import { Graph } from "./_components/graph";
+import { number } from "zod";
 
 const itemsPerPage = 10;
 
@@ -65,6 +67,13 @@ const Page = () => {
   const [location, setLocation] = useState<Location[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [history, setHistory] = useState<historyType[]>([]);
+  const [analysis, setAnalysis] = useState<{
+    userCount: number,
+    locationCount: number
+  }>({
+    userCount: 0,
+    locationCount: 0
+  });
 
   const [filters, setFilters] = useState({
     title: '',
@@ -78,27 +87,28 @@ const Page = () => {
 
     return users.filter(user => {
         const latestRecord = user?.record?.[0] ?? null;
-        if(latestRecord){
-          const statusMatch = latestRecord
-            ? (statustype === 'All' || statustype === '' || latestRecord.statustype?.name === statustype)
-            : true;
-
-          const destinationMatch = latestRecord
-              ? (destination === 'All' || latestRecord.destination?.name === destination)
-              : true;
-
-          if (!statusMatch || !destinationMatch) {
-              return false;
-          }else{
-            return true
-          }
+        let destinationMatch = true
+        let statusMatch = true
+        let titleMatch = true
+        let nameMatch = true;
+       
+        if(statustype != 'All' && statustype != ''){
+           statusMatch = latestRecord?.statustype?.name === statustype;
         }
-        const titleMatch = title === 'All' || title === '' || user.title === title;
-        const nameMatch = search === '' || 
-            user.firstName.toLowerCase().includes(search.toLowerCase()) || 
-            user.lastName.toLowerCase().includes(search.toLowerCase());
 
-        return titleMatch && nameMatch;
+        if(destination != 'All' && destination != '') {
+          destinationMatch = latestRecord?.destination?.name === destination;
+        }
+
+        if(title != 'All' && title != ''){
+          titleMatch = user.title === title;
+        }
+
+        if(search != ''){
+          nameMatch =  user.firstName.toLowerCase().includes(search?.toLowerCase()) || 
+              user.lastName.toLowerCase().includes(search?.toLowerCase());
+        }
+        return destinationMatch && statusMatch && titleMatch && nameMatch;
     });
   };
   const [currentPage, setCurrentPage] = useState(1);
@@ -175,12 +185,22 @@ const Page = () => {
     }
   };
 
+  const getAnalysis = async () => {
+    try {
+      const response = await _axios.get('/api/analysis');
+        setAnalysis(response.data);
+    } catch (error) {
+      console.log('Error fetching history:', error);
+    }
+  };
+
   useEffect(() => {
     const init = async (): Promise<void> => {
       await Promise.all([
         getUsers(),
         getLocation(),
         getStatus(),
+        getAnalysis()
       ]);
     };
     void init().catch(err => {
@@ -211,7 +231,7 @@ const Page = () => {
                 <Users2 className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">+2350</div>
+                <div className="text-2xl font-bold">+{analysis?.userCount}</div>
                 <p className="text-xs text-muted-foreground">
                 </p>
               </CardContent>
@@ -224,7 +244,7 @@ const Page = () => {
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">+12,234</div>
+                <div className="text-2xl font-bold">+{analysis?.locationCount}</div>
                 <p className="text-xs text-muted-foreground">
                 </p>
               </CardContent>
@@ -281,7 +301,7 @@ const Page = () => {
                       <DropdownMenuLabel>Status - Category</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuGroup>
-                        <DropdownMenuItem onClick={() => setFilters({ ...filters, statustype: 'All' })}>
+                        <DropdownMenuItem onClick={() => setFilters({ ...filters, statustype: '' })}>
                           <span>All</span>
                         </DropdownMenuItem>
                         {status.map((status: Status, index: number) => (
@@ -303,7 +323,7 @@ const Page = () => {
                       </DropdownMenuGroup>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  <Button onClick={() => setFilters({ ...filters, destination: '' })}>Clear</Button>
+                  <Button onClick={() => setFilters({ ...filters, statustype: '' })}>Clear</Button>
                 </div>
               </CardHeader>
               <CardContent>
