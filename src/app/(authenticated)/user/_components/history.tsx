@@ -21,12 +21,10 @@ import { type Location } from '@/lib/types/location'
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { useToast } from '@/components/ui/use-toast'
 import { HistoryContext, HistoryContextType } from '@/lib/context'
 import { Separator } from '@radix-ui/react-dropdown-menu'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuGroup, DropdownMenuLabel, DropdownMenuPortal, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
-
-
+import { useToast } from '@/hooks/use-toast'
 
 const historySchema = z.object({
   id: z.string().optional(),
@@ -55,17 +53,30 @@ export const History = () => {
 
 
   const handleDelete = async (id:string | undefined) => {
-    if(!id){
+    try {
+      if(!id){
+        toast({
+          variant: 'destructive',
+          title: "Error",
+          description: "No Selected History"
+        })
+      }else{
+        await _axios.delete(`/api/history/`, {
+         data: {id}
+        })
+        toast({
+          variant: 'default',
+          title: "Success",
+          description: "Delete History"
+        })
+        await getHistory()
+      }
+    } catch (error) {
       toast({
-        variant: 'destructive',
-        title: "Error",
-        description: "No Selected History"
+        variant: 'default',
+        title: "Success",
+        description: "Delete History"
       })
-    }else{
-      await _axios.delete(`/api/history/`, {
-       data: {id}
-      })
-      await getHistory()
     }
   }
 
@@ -78,8 +89,8 @@ export const History = () => {
       if(selectedHistory){
           const response = await _axios.put('/api/history', {
             id: selectedHistory.id,
-            location: data.destination,
-            status: data.statustype,
+            location: parseInt(data.destination),
+            status: parseInt( data.statustype),
             dateFrom: date?.from,
             dateTo: date?.to
           })
@@ -131,7 +142,7 @@ export const History = () => {
                             <DropdownMenuPortal>
                               <DropdownMenuSubContent>
                                   {loc.destinations?.map((des, index2) => {
-                                    return <DropdownMenuItem key={index2} onClick={() => {onChange(des.id)}} >
+                                    return <DropdownMenuItem key={index2} onClick={() => {onChange(des.id?.toString())}} >
                                     <span>{des.name}</span>
                                   </DropdownMenuItem>
                                   })}
@@ -172,7 +183,7 @@ export const History = () => {
                             <DropdownMenuPortal>
                               <DropdownMenuSubContent>
                                   {status.statusCategory?.map((des: StatusType, index: number) => {
-                                    return <DropdownMenuItem key={index} onClick={() => {onChange(des.id)}}>
+                                    return <DropdownMenuItem key={index} onClick={() => {onChange(des.id?.toString())}}>
                                     <span>{des.name}</span>
                                   </DropdownMenuItem>
                                   })}
@@ -257,12 +268,10 @@ export const History = () => {
   useEffect(() => {
     if(selectedHistory){
       historyForm.setValue('id', selectedHistory.id)
-    
       const selectedDestination = selectedHistory?.destination?.id?.toString() ?? '';
       const selectedStatusType = selectedHistory?.statustype?.id?.toString() ?? '';
-
       historyForm.setValue('destination', selectedDestination)
-        historyForm.setValue('statustype', selectedStatusType)
+      historyForm.setValue('statustype', selectedStatusType)
       setDate({
         from: selectedHistory.dateFrom,
         to: selectedHistory.dateTo

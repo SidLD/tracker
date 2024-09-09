@@ -58,7 +58,6 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { EducationalTitles, type User } from '@/lib/types/user'
 import { Separator } from '@/components/ui/separator'
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
-import { useToast } from '@/components/ui/use-toast'
 import { type StatusType, type Status } from '@/lib/types/status'
 import { type Location } from '@/lib/types/location'
 import { addDays, format } from "date-fns"
@@ -75,6 +74,7 @@ import {
 import _axios from '@/lib/axios'
 import { HistoryContext } from '@/lib/context'
 import { History } from './_components/history'
+import { useToast } from '@/hooks/use-toast'
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -109,6 +109,13 @@ const Page = () => {
   const [location, setLocation] = useState<Location[]>([]);
   const [users, setUsers] = useState<User[]>([])
   const [history, setHistory] = useState<historyType[]>([])
+   
+  const [filters, setFilters] = useState({
+    title: '',
+    statustype: '',
+    destination: '',
+    search: ''
+  });
  
   const historyForm = useForm<z.infer<typeof historySchema>>({
     resolver: zodResolver(historySchema),
@@ -472,7 +479,7 @@ const Page = () => {
 
   const onCreateHistory = async (data: z.infer<typeof historySchema>) => {
     try {
-      if(selectUser){
+      if(selectUser && data.location > 0 && data.status > 0){
         const response = await _axios.post('/api/history', {
           ...data,
           user: selectUser.id,
@@ -493,7 +500,13 @@ const Page = () => {
           })
           await getHistory();
         }
-      }    
+      }else{
+        toast({
+          variant:"destructive",
+          title : "Error",
+          description : "Field Required"
+        })
+      } 
     } catch (error) {
       console.log(error)
     }
@@ -514,6 +527,12 @@ const Page = () => {
           variant:"destructive",
           title : "Error",
           description : "Invalid Credentials or User Does Not Exist"
+        })
+      }else{
+        toast({
+          variant:"default",
+          title : "Success",
+          description : "Succesfully Delete User"
         })
       }
     } catch (error) {
@@ -542,6 +561,25 @@ const Page = () => {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  const filteredUsers = () => {
+    return users.filter(user => {
+        const latestRecord = user?.record?.[0] ?? null;
+        const titleMatch = filters.title === 'All' || filters.title === '' || user.title === filters.title;
+        let statusMatch = true;
+        let destinationMatch = true;
+        let nameMatch = filters.search
+            ? (user.firstName.toLowerCase().includes(filters.search.toLowerCase()) || 
+               user.lastName.toLowerCase().includes(filters.search.toLowerCase()))
+            : true;
+        if (latestRecord) {
+            statusMatch = filters.statustype === 'All' || filters.statustype === '' || latestRecord.statustype?.name === filters.statustype;
+            destinationMatch = filters.destination === 'All' || filters.destination === '' || latestRecord.destination?.name === filters.destination;
+        }
+        return titleMatch && statusMatch && nameMatch && destinationMatch;
+    });
+};
+
   useEffect(() => {
     const init = async (): Promise<void> => {
       await Promise.all([
@@ -590,6 +628,75 @@ const Page = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
+            <div className="ml-auto flex items-center gap-2">
+                  <Input 
+                    placeholder='Search...'   
+                    onChange={(e) => setFilters({ ...filters, search: e.target.value })} 
+                  />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button className='ml-2' variant="outline">Location</Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56">
+                      <DropdownMenuLabel>Location - Destination</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuGroup>
+                        <DropdownMenuItem onClick={() => setFilters({ ...filters, destination: 'All' })}>
+                          <span>All</span>
+                        </DropdownMenuItem>
+                        {location.map((loc: Location, index: number) => (
+                          <DropdownMenuSub key={index}>
+                            <DropdownMenuSubTrigger>
+                              <span>{loc.name}</span>
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuPortal>
+                              <DropdownMenuSubContent>
+                                {loc.destinations?.map((des, index) => (
+                                  <DropdownMenuItem key={index} onClick={() => setFilters({ ...filters, destination: des.name })}>
+                                    <span>{des.name}</span>
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuSubContent>
+                            </DropdownMenuPortal>
+                          </DropdownMenuSub>
+                        ))}
+                      </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Button onClick={() => setFilters({ ...filters, destination: '' })}>Clear</Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button className='ml-2' variant="outline">Status</Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56">
+                      <DropdownMenuLabel>Status - Category</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuGroup>
+                        <DropdownMenuItem onClick={() => setFilters({ ...filters, statustype: 'All' })}>
+                          <span>All</span>
+                        </DropdownMenuItem>
+                        {status.map((status: Status, index: number) => (
+                          <DropdownMenuSub key={index}>
+                            <DropdownMenuSubTrigger>
+                              <span>{status.name}</span>
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuPortal>
+                              <DropdownMenuSubContent>
+                                {status.statusCategory?.map((cat, index) => (
+                                  <DropdownMenuItem key={index} onClick={() => setFilters({ ...filters, statustype: cat.name })}>
+                                    <span>{cat.name}</span>
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuSubContent>
+                            </DropdownMenuPortal>
+                          </DropdownMenuSub>
+                        ))}
+                      </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Button onClick={() => setFilters({ ...filters, destination: '' })}>Clear</Button>
+                </div>
+              <Separator className='my-2' />
             <Table>
         <TableHeader>
           <TableRow>

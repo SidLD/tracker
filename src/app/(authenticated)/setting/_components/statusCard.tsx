@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@radix-ui/react-select"
-import { useToast } from "@/components/ui/use-toast"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -29,6 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import _axios from "@/lib/axios";
+import { useToast } from "@/hooks/use-toast"
 
 
 const LocationSchema = z.object({

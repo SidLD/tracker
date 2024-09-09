@@ -14,9 +14,9 @@ import {   Form,
   FormLabel,
   FormMessage, } from "@/components/ui/form"
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/use-toast"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 
 const FormSchema = z.object({
     username: z.string().min(3, {
