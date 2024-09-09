@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import React from 'react'
-// import Calendar from 'react-awesome-calendar';
+import Calendar from 'react-awesome-calendar';
 
 
 
@@ -41,11 +41,9 @@ const getCurrentMonthDates = () => {
     <div>
         <Card>
             <CardContent>
-             {/* <Calendar
+             <Calendar
                 events={events}
-                view="month"
-                
-            />  */}
+            /> 
             </CardContent>
         </Card>
     </div>
