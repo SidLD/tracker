@@ -568,7 +568,7 @@ const Page = () => {
         const titleMatch = filters.title === 'All' || filters.title === '' || user.title === filters.title;
         let statusMatch = true;
         let destinationMatch = true;
-        let nameMatch = filters.search
+        const nameMatch = filters.search
             ? (user.firstName.toLowerCase().includes(filters.search.toLowerCase()) || 
                user.lastName.toLowerCase().includes(filters.search.toLowerCase()))
             : true;
