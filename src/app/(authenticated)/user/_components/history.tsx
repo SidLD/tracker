@@ -5,7 +5,6 @@ import { type History as historyType } from '@/lib/types/history'
 import _axios from '@/lib/axios'
 import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { addDays, format } from "date-fns"
 import { Calendar as CalendarIcon } from "lucide-react";
 import { useForm } from 'react-hook-form'
@@ -17,20 +16,24 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { type DateRange } from 'react-day-picker'
-import { type Status } from '@/lib/types/status'
+import { StatusType, type Status } from '@/lib/types/status'
 import { type Location } from '@/lib/types/location'
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { useToast } from '@/components/ui/use-toast'
 import { HistoryContext, HistoryContextType } from '@/lib/context'
+import { Separator } from '@radix-ui/react-dropdown-menu'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuGroup, DropdownMenuLabel, DropdownMenuPortal, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
+
 
 
 const historySchema = z.object({
   id: z.string().optional(),
-  status: z.string(),
-  location: z.string(),
+  statustype: z.string(),
+  destination: z.string(),
   date: z.any(),
+
 })
 
 export const History = () => {
@@ -45,8 +48,8 @@ export const History = () => {
   const historyForm = useForm<z.infer<typeof historySchema>>({
     resolver: zodResolver(historySchema),
     defaultValues: {
-      status: '',
-      location: '',
+      statustype: '',
+      destination: '',
     },
   })
 
@@ -75,8 +78,8 @@ export const History = () => {
       if(selectedHistory){
           const response = await _axios.put('/api/history', {
             id: selectedHistory.id,
-            location: data.location,
-            status: data.status,
+            location: data.destination,
+            status: data.statustype,
             dateFrom: date?.from,
             dateTo: date?.to
           })
@@ -106,21 +109,40 @@ export const History = () => {
             />
             <FormField
               control={historyForm.control}
-              name="location"
-              render={({ field }) => (
+              name="destination"
+              render={({ field: { onChange, onBlur, value } }) => (
                 <FormItem className=" relative my-5">
                   <FormLabel>Location</FormLabel>
                   <FormControl>
-                  <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
-                    <SelectTrigger className="w-[280px]">
-                      <SelectValue placeholder="Select Title" {...field}/>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {location?.map( (location:Location) => <SelectItem key={location.id} value={location.id.toString()}>{location.name}</SelectItem>)}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button className='ml-2' variant="outline">Select Here</Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56">
+                      <DropdownMenuLabel>Location - Destination</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuGroup>
+                            {location.map((loc: Location, index: number) => {
+                              return <>
+                                <DropdownMenuSub key={index}>
+                                  <DropdownMenuSubTrigger>
+                              <span>{loc.name}</span>
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuPortal>
+                              <DropdownMenuSubContent>
+                                  {loc.destinations?.map((des, index2) => {
+                                    return <DropdownMenuItem key={index2} onClick={() => {onChange(des.id)}} >
+                                    <span>{des.name}</span>
+                                  </DropdownMenuItem>
+                                  })}
+                              </DropdownMenuSubContent>
+                            </DropdownMenuPortal>
+                        </DropdownMenuSub>
+                        </>
+                            })}
+                      </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   </FormControl>
                   <FormMessage className=" absolute -bottom-5"/>
                   </FormItem>
@@ -128,21 +150,40 @@ export const History = () => {
             />
             <FormField
               control={historyForm.control}
-              name="status"
-              render={({ field }) => (
+              name="statustype"
+              render={({ field: { onChange, onBlur, value } }) => (
                 <FormItem className=" relative my-5">
                   <FormLabel>Status</FormLabel>
-                  <FormControl>
-                  <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
-                    <SelectTrigger className="w-[280px]">
-                      <SelectValue placeholder="Select Title" {...field}/>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {status.map((status: Status) => <SelectItem key={status.id} value={status.id.toString()}>{status.name}</SelectItem>)}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                  <FormControl >
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button className='ml-5' variant="outline">Select Here</Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56">
+                      <DropdownMenuLabel>Status</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuGroup>
+                            {status.map((status: Status, index: number) => {
+                              return <>
+                                <DropdownMenuSub>
+                                  <DropdownMenuSubTrigger key={index}>
+                              <span>{status.name}</span>
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuPortal>
+                              <DropdownMenuSubContent>
+                                  {status.statusCategory?.map((des: StatusType, index: number) => {
+                                    return <DropdownMenuItem key={index} onClick={() => {onChange(des.id)}}>
+                                    <span>{des.name}</span>
+                                  </DropdownMenuItem>
+                                  })}
+                              </DropdownMenuSubContent>
+                            </DropdownMenuPortal>
+                        </DropdownMenuSub>
+                        </>
+                            })}
+                      </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   </FormControl>
                   <FormMessage className=" absolute -bottom-5"/>
                   </FormItem>
@@ -216,15 +257,19 @@ export const History = () => {
   useEffect(() => {
     if(selectedHistory){
       historyForm.setValue('id', selectedHistory.id)
-      historyForm.setValue('location', selectedHistory.location.id.toString())
-      historyForm.setValue('status', selectedHistory.status.id.toString())
+    
+      const selectedDestination = selectedHistory?.destination?.id?.toString() ?? '';
+      const selectedStatusType = selectedHistory?.statustype?.id?.toString() ?? '';
+
+      historyForm.setValue('destination', selectedDestination)
+        historyForm.setValue('statustype', selectedStatusType)
       setDate({
         from: selectedHistory.dateFrom,
         to: selectedHistory.dateTo
       });
     }else{
-      historyForm.setValue('status', '')
-      historyForm.setValue('location', '')
+      historyForm.setValue('destination', '')
+      historyForm.setValue('statustype', '')
     }
   }, [selectedHistory])
 
@@ -268,21 +313,21 @@ export const History = () => {
           </Dialog>
           </div>
             </div>
+            <Separator className='my-5' />
             <dl className="grid gap-3">
               <div className="flex items-center justify-between">
                 <dt className="flex items-center gap-1 text-muted-foreground">
                   <CreditCard className="h-4 w-4" />
                   Status
                 </dt>
-                <dd>{data.status.name}</dd>
-                
+                <dd>{data?.statustype?.name}</dd>  
               </div>
               <div className="flex items-center justify-between">
                 <dt className="flex items-center gap-1 text-muted-foreground">
                   <CreditCard className="h-4 w-4" />
                   Location
                 </dt>
-                <dd>{data.location.name}</dd>
+                <dd>{data?.destination?.name}</dd>
               </div>
             </dl>
           </div>

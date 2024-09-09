@@ -1,3 +1,4 @@
+import { History } from "./history";
 import { Role } from "./role";
 
 export type User = {

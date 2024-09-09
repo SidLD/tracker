@@ -64,7 +64,8 @@ const Page = () => {
  
   const [filters, setFilters] = useState({
     title: '',
-    role: '',
+    statustype: '',
+    destination: '',
     search: ''
   });
 
@@ -77,20 +78,30 @@ const Page = () => {
 
   const filteredUsers = () => {
     return users.filter(user => {
-      let titleMatch = filters.title ? user.title === filters.title : true;
+      let titleMatch, statusMatch, destinationMatch, nameMatch = false;
+      const latestRecord = user?.record?.[0] ?? null
+      titleMatch = filters.title ? user.title === filters.title : true;
       if(filters.title == 'All'){
         titleMatch = true
       }
-      let roleMatch = filters.role ? user.role.name === filters.role : true;
-      if(filters.role == 'All'){
-        roleMatch = true
-      }
-      const nameMatch = filters.search ? 
-      (user.firstName.toLowerCase().includes(filters.search.toLowerCase()) || 
-       user.lastName.toLowerCase().includes(filters.search.toLowerCase())) : 
-      true;
+      if(latestRecord){
+        statusMatch = latestRecord.statustype?.name ? latestRecord.statustype?.name === filters.statustype : true;
+        if(filters.statustype == 'All'){
+          statusMatch = true
+        }
 
-      return titleMatch && roleMatch && nameMatch && users;
+        destinationMatch = latestRecord.destination?.name ? latestRecord.destination?.name === filters.destination : true;
+        if(filters.statustype == 'All'){
+          statusMatch = true
+        }
+
+        nameMatch = filters.search ? 
+        (user.firstName.toLowerCase().includes(filters.search.toLowerCase()) || 
+         user.lastName.toLowerCase().includes(filters.search.toLowerCase())) : 
+        true;
+  
+      }
+      return titleMatch && statusMatch && nameMatch && destinationMatch && users;
     })
   };
 
@@ -101,25 +112,9 @@ const Page = () => {
         'Content-Type': 'application/json',
       },
     });
-    setUsers(await response.json() as User[])
+    const data = await response.json() as User[];
+    setUsers(data)
   }
-
-  const getRoles = async () => {
-    try {
-      const response = await fetch('/api/role', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      setRoles([ {name: 'All', id: 0}, ...await response.json()]);
-    } catch (error) {
-      console.error("Error fetching roles:", error);
-    }
-  };
 
   const getLocation = async () => {
     try {
@@ -178,7 +173,6 @@ const Page = () => {
   useEffect(() => {
     const init = async (): Promise<void> => {
       await Promise.all([
-        getRoles(),
         getUsers(),
         getLocation(),
         getStatus(),
@@ -229,7 +223,7 @@ const Page = () => {
                   
               <div className="ml-auto flex items-center gap-2">
                 <Input placeholder='Search...'   onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
-                <DropdownMenu>
+                {/* <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="outline"
@@ -238,13 +232,13 @@ const Page = () => {
                     >
                       <ListFilter className="h-3.5 w-3.5" />
                       <span className="sr-only sm:not-sr-only">Filtered: </span>
-                      <p>{filters.role.length > 10 ? filters.role.substring(0,10) + '...' : filters.role}</p>
+                      <p>{filters.destination.length > 10 ? filters.destination.substring(0,10) + '...' : filters.destination}</p>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Filter by</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      {roles.map((role : Role, index: number) => {
+                      {filters.z.map((role : Role, index: number) => {
                         return  <DropdownMenuCheckboxItem
                         key={index}
                         checked={filters.role ===  role.name}
@@ -280,7 +274,7 @@ const Page = () => {
                       </DropdownMenuCheckboxItem>
                       })}
                     </DropdownMenuContent>
-                </DropdownMenu>
+                </DropdownMenu> */}
               </div>
                 </CardHeader>
                 <CardContent>
@@ -295,6 +289,9 @@ const Page = () => {
                         </TableHead>
                         <TableHead className="">
                           Status
+                        </TableHead>
+                        <TableHead className="">
+                          Location
                         </TableHead>
                         <TableHead className="hidden md:table-cell">Last Update</TableHead>
                         <TableHead className="">Action</TableHead>
@@ -311,7 +308,12 @@ const Page = () => {
                             </TableCell>
                             <TableCell className="hidden sm:table-cell">
                               <Badge className="text-xs" variant="secondary">
-                                {user.role.name}
+                                {user?.record?.[0]?.statustype?.name ?? ''}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="hidden sm:table-cell">
+                              <Badge className="text-xs" variant="secondary">
+                                {user?.record?.[0]?.destination?.name ?? ''}
                               </Badge>
                             </TableCell>
                             <TableCell className="hidden md:table-cell">

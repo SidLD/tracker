@@ -56,8 +56,8 @@ updateHistory: protectedProcedure
         id: z.any(),
         dateFrom: z.string(),
         dateTo : z.string(),
-        status: z.string(), 
-        location : z.string()
+        status: z.number(), 
+        location : z.number()
     }))
     .mutation(async({ ctx, input }) => {
         const roleFound = await ctx.db.records.findFirst({
@@ -71,8 +71,8 @@ updateHistory: protectedProcedure
             data: {
                dateFrom: input.dateFrom,
                dateTo: input.dateTo,
-               statusTypeId: parseInt(input.status),
-               destinationId: parseInt(input.location)
+               statusTypeId: input.status,
+               destinationId: input.location
             }
         })
     }),

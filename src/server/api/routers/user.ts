@@ -6,8 +6,8 @@ getUsers: protectedProcedure
     .query(async({ ctx, input }) => {
         const users = await ctx.db.user.findMany({
             where: {
-              name: {
-                equals: null,
+              roleId: {
+                not: 1,
               },
             },
             select: { 
@@ -58,6 +58,10 @@ createUser: protectedProcedure
         if(roleFound){
             throw Error("User Already Exist")
         }
+        let roleId = 1;
+        if(input.role == 'USER'){
+            roleId = 25;
+        }
         const password = await bcrypt.hash(`${input.firstName}${input.role}`, 10)
         return await ctx.db.user.create({
             data: {
@@ -65,7 +69,7 @@ createUser: protectedProcedure
                 lastName: input.lastName,
                 middleName: input.middleName,
                 title: input.title,
-                roleId: parseInt(input.role),
+                roleId: roleId,
                 password: password                      
             }
         })
@@ -83,8 +87,12 @@ updateUser: protectedProcedure
         const userFound = await ctx.db.user.findFirst({
             where: { id: input.id}
         })
+        let roleId = 1;
+        if(input.role == 'USER'){
+            roleId = 25;
+        }
         if(!userFound){
-            throw Error("User Already Exist")
+            throw Error("User Does Not Exist")
         }
         return await ctx.db.user.update({
             where: {id: input.id},
@@ -93,11 +101,27 @@ updateUser: protectedProcedure
                 lastName: input.lastName,
                 middleName: input.middleName,
                 title: input.title,
-                roleId: parseInt(input.role),                 
+                roleId: roleId,                 
             },
             select: {
                 id: true
             }
+        })
+    }),
+deletUser: protectedProcedure
+    .input(z.object({ 
+        id: z.string(),
+    }))
+    .mutation(async({ ctx, input }) => {
+        const userFound = await ctx.db.user.findFirst({
+            where: { id: input.id}
+        })
+
+        if(!userFound){
+            throw Error("User Does Not Exist")
+        }
+        return await ctx.db.user.delete({
+            where: {id: input.id}
         })
     })
 })

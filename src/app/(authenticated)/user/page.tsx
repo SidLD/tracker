@@ -14,6 +14,7 @@ import {
   Pencil,
   Plus,
   PlusCircle,
+  Trash2,
   UserPlus,
   Users,
 } from "lucide-react"
@@ -81,8 +82,6 @@ const formSchema = z.object({
   firstName: z.string().min(3, 'Min 3'),
   middleName: z.string().optional(),
   lastName: z.string().min(3, 'Min 3'),
-  status: z.number().optional(),
-  location: z.number().optional(),
 })
 
 const historySchema = z.object({
@@ -92,8 +91,7 @@ const historySchema = z.object({
   date: z.any(),
 })
 
-const itemsPerPage = 10; // Number of items to display per page
-
+const itemsPerPage = 10; 
 
 const Page = () => {
   const { toast } = useToast()
@@ -104,8 +102,6 @@ const Page = () => {
       firstName:"",
       middleName:"",
       lastName:"",
-      status: -1,
-      location: -1
     },
   })
   const [selectUser, setSelectUser] = useState<User | null>(null)
@@ -237,8 +233,6 @@ const Page = () => {
       form.setValue('firstName', selectUser.firstName)
       form.setValue('middleName', selectUser.middleName)
       form.setValue('lastName', selectUser.lastName)
-      // form.setValue('status')
-      // form.setValue('location' )
     }
   }
 
@@ -346,7 +340,7 @@ const Page = () => {
                   <FormControl>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline">Select Here</Button>
+                      <Button className='ml-2' variant="outline">Select Here</Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56">
                       <DropdownMenuLabel>Location - Destination</DropdownMenuLabel>
@@ -384,10 +378,10 @@ const Page = () => {
               render={({ field: { onChange, onBlur, value } }) => (
                 <FormItem className=" relative my-5">
                   <FormLabel>Status</FormLabel>
-                  <FormControl>
+                  <FormControl >
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline">Select Here</Button>
+                      <Button className='ml-5' variant="outline">Select Here</Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56">
                       <DropdownMenuLabel>Status</DropdownMenuLabel>
@@ -397,7 +391,7 @@ const Page = () => {
                               return <>
                                 <DropdownMenuSub>
                                   <DropdownMenuSubTrigger key={index}>
-                              <span>{JSON.stringify(status)}</span>
+                                  <span>{status.name}</span>
                             </DropdownMenuSubTrigger>
                             <DropdownMenuPortal>
                               <DropdownMenuSubContent>
@@ -505,6 +499,28 @@ const Page = () => {
     }
   }
 
+  const onDeleteUser = async () => {
+    try {
+      const response = await fetch('/api/user', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({id: selectUser?.id})
+      });
+      await getUsers()
+      if (!response.ok) {
+        toast({
+          variant:"destructive",
+          title : "Error",
+          description : "Invalid Credentials or User Does Not Exist"
+        })
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   const getHistory = async () => {
     try {
       if(selectUser?.id){
@@ -521,20 +537,14 @@ const Page = () => {
   }
 
   const [currentPage, setCurrentPage] = useState(1);
-
-  // Calculate total pages
   const totalPages = Math.ceil(users.length / itemsPerPage);
-
-  // Calculate the subset of users to display on the current page
   const paginatedUsers = users.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
   useEffect(() => {
     const init = async (): Promise<void> => {
       await Promise.all([
-        // getRoles(),
         getUsers(),
         getLocation(),
         getStatus(),
@@ -557,8 +567,6 @@ const Page = () => {
                   form.resetField('firstName')
                   form.resetField('middleName')
                   form.resetField('lastName')
-                  form.resetField('status')
-                  form.resetField('location')
                   form.resetField('title')
                 }}>
                 <File className="h-3.5 w-3.5 mr-2" />
@@ -608,12 +616,12 @@ const Page = () => {
               </TableCell>
               <TableCell>
                 <Badge className="text-xs" variant="secondary">
-                    {user.record != undefined ? user?.record[0]?.statustype.name : ""}
+                    {user?.record?.[0]?.statustype?.name ?? ''}
                 </Badge>
               </TableCell>
               <TableCell>
                 <Badge className="text-xs" variant="secondary">
-                    {user.record != undefined ? user?.record[0]?.destination.name : ""}
+                    {user?.record?.[0]?.destination?.name ?? ''}
                 </Badge>
               </TableCell>
               <TableCell className="hidden md:table-cell">
@@ -626,8 +634,6 @@ const Page = () => {
           ))}
         </TableBody>
       </Table>
-
-      {/* Pagination Controls */}
       <div className="pagination-controls flex justify-between items-center mt-4">
         <button 
           onClick={() => setCurrentPage(prevPage => Math.max(prevPage - 1, 1))}
@@ -657,7 +663,7 @@ const Page = () => {
       <Card className="overflow-hidden" x-chunk="dashboard-05-chunk-4" >
         <CardHeader className="flex flex-row items-start bg-muted/50">
           <div className="grid gap-0.5">
-            <CardTitle className="group flex items-center gap-2 text-lg">
+            <CardTitle className="group flex items-center gap-2 just text-lg">
               Details
               <Dialog>
                 <DialogTrigger asChild>
@@ -670,6 +676,20 @@ const Page = () => {
                     <DialogTitle>Edit User</DialogTitle>
                   </DialogHeader>
                   {makeForm()}
+                </DialogContent>
+              </Dialog>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" className='w-5 mx-1 p-0' disabled={!selectUser}>
+                    <Trash2 className='' />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Delete User</DialogTitle>
+                  </DialogHeader>
+                    <p>Confirm Delete?</p>
+                    <Button variant={'destructive'} onClick={() => {onDeleteUser()}}>Confirm</Button>
                 </DialogContent>
               </Dialog>
             </CardTitle>

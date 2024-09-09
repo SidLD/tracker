@@ -7,8 +7,8 @@ export type Payload = {
     user : string,
     dateFrom: string,
     dateTo : string
-    status: string, 
-    location :  string
+    status: number, 
+    location :  number
 }
 
 export async function POST (request: NextRequest){
