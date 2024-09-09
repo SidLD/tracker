@@ -1,59 +1,77 @@
 import { Card, CardContent } from '@/components/ui/card';
-import React, { useEffect, useState } from 'react'
-import Calendar from 'react-awesome-calendar';
-
-
+import _axios from '@/lib/axios';
+import React, { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
+const Calendar = dynamic(() => import('react-awesome-calendar'), { ssr: false });
 
 export const Graph = () => {
-const getCurrentMonthDates = () => {
-    const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1); 
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0); 
-    return { start, end };
-  };
+  const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState<any[]>([]);
   const [isClient, setIsClient] = useState(false);
-  const { start: monthStart, end: monthEnd } = getCurrentMonthDates();
-  const events = [
-    {
-      id: 1,
-      color: '#fd3153',
-      from: monthStart.toISOString(),
-      to: new Date(monthStart.getFullYear(), monthStart.getMonth(), 5).toISOString(), 
-      title: 'This is an event',
-    },
-    {
-      id: 2,
-      color: '#1ccb9e',
-      from: monthStart.toISOString(),
-      to: new Date(monthStart.getFullYear(), monthStart.getMonth(), 15).toISOString(), 
-      title: 'This is another event',
-    },
-    {
-      id: 3,
-      color: '#3694DF',
-      from: monthStart.toISOString(),
-      to: monthEnd.toISOString(), // End date as the last day of the month
-      title: 'This is also another event',
-    },
-  ];
 
-  if (!isClient) {
-    return <></>; 
+  // Function to generate random hex color
+  function generateRandomHexColor(): string {
+    const randomNumber = Math.floor(Math.random() * 16777215);
+    const hexString = randomNumber.toString(16).padStart(6, '0');
+    return `#${hexString}`;
   }
 
+  // Function to fetch records from the API
+  const fetchRecords = async () => {
+    try {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0'); 
+      const formattedMonth = `${year}-${month}`;
+
+      const { data } = await _axios.get('/api/record', {
+        params: {
+          month: formattedMonth
+        }
+      });
+
+      // Process data to match calendar format
+      const _d = data.map((event: any) => {
+        const dateTo = new Date(event.dateTo);
+        const dateFrom = new Date(event.dateFrom);
+        dateTo.setDate(dateTo.getDate() + 1);
+        dateFrom.setDate(dateFrom.getDate() + 1);
+
+        return {
+          id: event.id,
+          color: generateRandomHexColor(),
+          from: dateFrom,
+          to: dateTo,
+          title: `${event.user.firstName}, ${event.user.lastName} at ${event.destination.name}`,
+        };
+      });
+
+      setEvents(_d);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Use useEffect to set the client-side flag
   useEffect(() => {
     setIsClient(true);
+    fetchRecords();
   }, []);
 
+  // Render loading state or calendar
   return (
-    <div>
-        <Card>
+    <>
+      {!loading && isClient && (
+        <div>
+          <Card>
             <CardContent>
-             <Calendar
-                events={events}
-            /> 
+              <Calendar events={events} />
             </CardContent>
-        </Card>
-    </div>
-  )
-}
+          </Card>
+        </div>
+      )}
+    </>
+  );
+};

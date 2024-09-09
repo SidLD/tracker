@@ -60,7 +60,7 @@ import { Separator } from '@/components/ui/separator'
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
 import { type StatusType, type Status } from '@/lib/types/status'
 import { type Location } from '@/lib/types/location'
-import { addDays, format } from "date-fns"
+import { addDays, format, subDays } from "date-fns"
 import { Calendar as CalendarIcon } from "lucide-react"
 import { type DateRange } from "react-day-picker"
 import { type History as historyType } from '@/lib/types/history'
@@ -224,10 +224,12 @@ const Page = () => {
     }
   };
 
-  const [date, setDate] = React.useState<DateRange | undefined>({
-    from: new Date(2022, 0, 20),
-    to: addDays(new Date(2022, 0, 20), 20),
-  }) 
+  const today = new Date();
+  const defaultStartDate = subDays(today, 30);
+  const [date, setDate] = React.useState<DateRange | undefined | any>({
+    from: defaultStartDate,
+    to: today,
+  });
 
   const handleSelect = async (user: User) => {
     setSelectUser(user)
@@ -460,7 +462,6 @@ const Page = () => {
                           defaultMonth={date?.from}
                           selected={date}
                           onSelect={setDate}
-                          numberOfMonths={2}
                           {...field}
                         />
                       </PopoverContent>

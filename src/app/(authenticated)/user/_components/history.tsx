@@ -5,7 +5,6 @@ import { type History as historyType } from '@/lib/types/history'
 import _axios from '@/lib/axios'
 import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { addDays, format } from "date-fns"
 import { Calendar as CalendarIcon } from "lucide-react";
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -25,6 +24,8 @@ import { HistoryContext, HistoryContextType } from '@/lib/context'
 import { Separator } from '@radix-ui/react-dropdown-menu'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuGroup, DropdownMenuLabel, DropdownMenuPortal, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast'
+import {  format, subDays } from 'date-fns';
+
 
 const historySchema = z.object({
   id: z.string().optional(),
@@ -38,10 +39,13 @@ export const History = () => {
   const {user, location, status, getHistory, history} = useContext<HistoryContextType>(HistoryContext)  
   const [selectedHistory, setSelectedHistory] = useState<historyType | null>(null);
   const {toast} = useToast()
-  const [date, setDate] = React.useState<DateRange | undefined>({
-    from: new Date(),
-    to: addDays(new Date(), 20), 
-  })
+  const today = new Date();
+  const defaultStartDate = subDays(today, 30);
+
+  const [date, setDate] = React.useState<DateRange | undefined | any>({
+    from: defaultStartDate,
+    to: today,
+  });
 
   const historyForm = useForm<z.infer<typeof historySchema>>({
     resolver: zodResolver(historySchema),
@@ -50,7 +54,6 @@ export const History = () => {
       destination: '',
     },
   })
-
 
   const handleDelete = async (id:string | undefined) => {
     try {
@@ -205,7 +208,7 @@ export const History = () => {
               name="date"
               render={({ field }) => (
                 <FormItem className=" relative my-5">
-                  <FormLabel>Date</FormLabel>
+                  <FormLabel>Dates</FormLabel>
                   <FormControl>
                   <div className={cn("grid gap-2")}>
                     <Popover>
@@ -237,10 +240,9 @@ export const History = () => {
                         <Calendar
                           initialFocus
                           mode="range"
-                          defaultMonth={date?.from}
+                          defaultMonth={date.from}
                           selected={date}
                           onSelect={setDate}
-                          numberOfMonths={2}
                           {...field}
                         />
                       </PopoverContent>

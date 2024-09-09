@@ -46,7 +46,6 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
     try {
         const data = await api.user.getUsers();
-        console.log(data); // Consider removing this in production
         return NextResponse.json(data);
     } catch (error) {
         console.error('Error in GET /api/hello:', error);
