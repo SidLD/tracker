@@ -1,12 +1,10 @@
 'use client';
 import {
   CreditCard,
-  ListFilter,
   Users2
 } from "lucide-react";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
@@ -47,8 +45,7 @@ import {
   Tabs,
   TabsContent,
 } from "@/components/ui/tabs";
-import { type Role } from '@/lib/types/role';
-import { EducationalTitles, type User } from '@/lib/types/user';
+import { type User } from '@/lib/types/user';
 import { Separator } from '@/components/ui/separator';
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
 import { type Status } from '@/lib/types/status';

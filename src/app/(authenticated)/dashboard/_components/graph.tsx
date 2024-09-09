@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Calendar from 'react-awesome-calendar';
 
 
@@ -11,6 +11,8 @@ const getCurrentMonthDates = () => {
     const end = new Date(now.getFullYear(), now.getMonth() + 1, 0); 
     return { start, end };
   };
+
+  const [isClient, setIsClient] = useState(false);
   
   const { start: monthStart, end: monthEnd } = getCurrentMonthDates();
   
@@ -37,6 +39,16 @@ const getCurrentMonthDates = () => {
       title: 'This is also another event',
     },
   ];
+
+  if (!isClient) {
+    return null; // Or a loading spinner
+  }
+
+  useEffect(() => {
+    // This will run only in the browser
+    setIsClient(true);
+  }, []);
+
   return (
     <div>
         <Card>
