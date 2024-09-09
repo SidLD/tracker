@@ -18,6 +18,12 @@ getUsers: protectedProcedure
                 title: true,
                 extension: true,
                 updatedAt: true,
+                role: {
+                    select: {
+                        id: true,
+                        name:true
+                    }
+                },
                 record: {
                     select: {
                         destination: {
@@ -53,14 +59,10 @@ createUser: protectedProcedure
     }))
     .mutation(async({ ctx, input }) => {
         const roleFound = await ctx.db.user.findFirst({
-        where: { firstName: input.firstName , lastName: input.lastName}
+            where: { firstName: input.firstName , lastName: input.lastName}
         })
         if(roleFound){
             throw Error("User Already Exist")
-        }
-        let roleId = 1;
-        if(input.role == 'USER'){
-            roleId = 25;
         }
         const password = await bcrypt.hash(`${input.firstName}${input.role}`, 10)
         return await ctx.db.user.create({
@@ -69,7 +71,7 @@ createUser: protectedProcedure
                 lastName: input.lastName,
                 middleName: input.middleName,
                 title: input.title,
-                roleId: roleId,
+                roleId: parseInt(input.role),
                 password: password                      
             }
         })
@@ -87,10 +89,7 @@ updateUser: protectedProcedure
         const userFound = await ctx.db.user.findFirst({
             where: { id: input.id}
         })
-        let roleId = 1;
-        if(input.role == 'USER'){
-            roleId = 25;
-        }
+
         if(!userFound){
             throw Error("User Does Not Exist")
         }
@@ -101,7 +100,7 @@ updateUser: protectedProcedure
                 lastName: input.lastName,
                 middleName: input.middleName,
                 title: input.title,
-                roleId: roleId,                 
+                roleId: parseInt(input.role),                 
             },
             select: {
                 id: true

@@ -9,6 +9,7 @@ export type User = {
     lastName: string,
     updatedAt: Date,
     record: History[] | undefined
+    role: Role
 }
 
 export const EducationalTitles: string[] = [

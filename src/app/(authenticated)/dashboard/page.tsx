@@ -67,6 +67,7 @@ const Page = () => {
   const [location, setLocation] = useState<Location[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [history, setHistory] = useState<historyType[]>([]);
+
   const [analysis, setAnalysis] = useState<{
     userCount: number,
     locationCount: number
@@ -200,7 +201,7 @@ const Page = () => {
         getUsers(),
         getLocation(),
         getStatus(),
-        getAnalysis()
+        getAnalysis(),
       ]);
     };
     void init().catch(err => {
@@ -337,6 +338,9 @@ const Page = () => {
                         Name
                       </TableHead>
                       <TableHead className="">
+                        Field
+                      </TableHead>
+                      <TableHead className="">
                         Status
                       </TableHead>
                       <TableHead className="">
@@ -354,6 +358,9 @@ const Page = () => {
                         </TableCell>
                         <TableCell className="hidden sm:table-cell">
                           <div className="font-medium">{user.firstName} {user.lastName}</div>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          <div className="font-medium">{user.role.name}</div>
                         </TableCell>
                         <TableCell className="hidden sm:table-cell">
                           <Badge className="text-xs" variant="secondary">

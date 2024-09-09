@@ -54,7 +54,7 @@ import { z } from 'zod'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { EducationalTitles, type User } from '@/lib/types/user'
 import { Separator } from '@/components/ui/separator'
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
@@ -75,6 +75,7 @@ import _axios from '@/lib/axios'
 import { HistoryContext } from '@/lib/context'
 import { History } from './_components/history'
 import { useToast } from '@/hooks/use-toast'
+import { type Role } from '@/lib/types/role'
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -82,6 +83,7 @@ const formSchema = z.object({
   firstName: z.string().min(3, 'Min 3'),
   middleName: z.string().optional(),
   lastName: z.string().min(3, 'Min 3'),
+  role: z.any()
 })
 
 const historySchema = z.object({
@@ -102,11 +104,13 @@ const Page = () => {
       firstName:"",
       middleName:"",
       lastName:"",
+      role: 0
     },
   })
   const [selectUser, setSelectUser] = useState<User | null>(null)
   const [status, setStatus] = useState<Status[]>([]);
   const [location, setLocation] = useState<Location[]>([]);
+  const [role, setRoles] = useState<Role[]>([]);
   const [users, setUsers] = useState<User[]>([])
   const [history, setHistory] = useState<historyType[]>([])
    
@@ -127,6 +131,7 @@ const Page = () => {
 
   const onCreateUser = async (data: z.infer<typeof formSchema>) => {
     try {
+      console.log(data)
       if(selectUser){
         const response = await fetch('/api/user', {
           method: 'PUT',
@@ -145,7 +150,7 @@ const Page = () => {
           toast({
             variant:"default",
             title : "Success",
-            description : `Successfully Created User ${data.firstName } ${data.lastName}`
+            description : `Successfully Updated User ${data.firstName } ${data.lastName}`
           })
           await getUsers()
         }
@@ -186,6 +191,16 @@ const Page = () => {
       },
     });
     setUsers(await response.json() as User[])
+  }
+
+  const getRoles = async () => {
+    const response = await fetch('/api/role', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    setRoles(await response.json() as Role[])
   }
 
   const getLocation = async () => {
@@ -242,6 +257,7 @@ const Page = () => {
       form.setValue('firstName', selectUser.firstName)
       form.setValue('middleName', selectUser.middleName)
       form.setValue('lastName', selectUser.lastName)
+      form.setValue('role', selectUser.role.id.toString())
     }
   }
 
@@ -316,6 +332,35 @@ const Page = () => {
                   <FormLabel>Last Name</FormLabel>
                   <FormControl>
                       <Input placeholder="Input Last Name" {...field} />
+                  </FormControl>
+                  <FormMessage className=" absolute -bottom-5"/>
+                  </FormItem>
+              )}
+            />
+
+          <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                  <FormItem className=" relative my-5">
+                  <FormLabel>Status</FormLabel>
+                  <FormControl>
+                  <Select
+                      {...field}
+                      onValueChange={(value) => field.onChange(value)}
+                      value={field.value}
+                    >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Status... "/>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {role.map((role, index) => {
+                          return  <SelectItem key={index} value={`${role.id.toString()}`}>{role.name}</SelectItem>
+                        })}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                   </FormControl>
                   <FormMessage className=" absolute -bottom-5"/>
                   </FormItem>
@@ -600,6 +645,7 @@ const Page = () => {
         getUsers(),
         getLocation(),
         getStatus(),
+        getRoles()
       ]);
     };
     void init().catch()
@@ -620,6 +666,7 @@ const Page = () => {
                   form.resetField('middleName')
                   form.resetField('lastName')
                   form.resetField('title')
+                  form.resetField('role')
                 }}>
                 <File className="h-3.5 w-3.5 mr-2" />
                 <span>New Data</span></Button>
@@ -720,6 +767,7 @@ const Page = () => {
             <TableHead className="hidden sm:table-cell">
               Name
             </TableHead>
+            <TableHead>Field</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Location</TableHead>
             <TableHead className="hidden md:table-cell">Last Update</TableHead>
@@ -734,6 +782,9 @@ const Page = () => {
               </TableCell>
               <TableCell className="hidden sm:table-cell">
                 <div className="font-medium">{user.firstName} {user.lastName}</div>
+              </TableCell>
+              <TableCell className="hidden sm:table-cell">
+                <div className="font-medium">{user?.role?.name}</div>
               </TableCell>
               <TableCell>
                 <Badge className="text-xs" variant="secondary">
@@ -835,11 +886,16 @@ const Page = () => {
                       {selectUser?.lastName}
                   </div>
                   <div className='grid grid-cols-2'>
-                      <Label>Status</Label>
-                      
+                      <Label>Field</Label>
+                      {selectUser?.role.name}
                   </div>
                   <div className='grid grid-cols-2'>
-                      <Label>Current Status</Label>
+                      <Label>Latest Status</Label>
+                      {selectUser?.record && selectUser?.record[0]?.statustype?.name}
+                  </div>
+                  <div className='grid grid-cols-2'>
+                      <Label>Latest Location</Label>
+                      {selectUser?.record && selectUser?.record[0]?.destination?.name}
                   </div>
                 </div>
         </CardContent>

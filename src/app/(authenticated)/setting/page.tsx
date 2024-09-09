@@ -18,6 +18,8 @@ const Page = () => {
           <LocationCard/>
           <Separator />
           <StatusCard />
+          <Separator />
+          <RoleCard />
     </Tabs>
     );
 }

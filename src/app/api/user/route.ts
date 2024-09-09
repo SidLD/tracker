@@ -2,7 +2,7 @@ import { api } from "@/trpc/server";
 import { type NextRequest, NextResponse } from "next/server";
 
 export type Payload = {
-    id?: string; // Made optional to accommodate cases where it might be undefined
+    id?: string;
     username: string; 
     password: string;  
     firstName: string; 
@@ -28,13 +28,6 @@ export type Payload2 = {
 export async function POST(request: NextRequest) {
     try {
         const payload = await request.json() as Payload;
-        payload.role = 'USER';
-        
-        // Validate payload if needed
-        if (!payload.username || !payload.password || !payload.firstName || !payload.lastName) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-        }
-
         const data = await api.user.createUser(payload);
         return NextResponse.json(data);
     } catch (error) {
@@ -56,13 +49,6 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
     try {
         const payload = await request.json() as Payload2;
-        payload.role = 'USER';
-        
-        // Validate payload if needed
-        if (!payload.id || !payload.username || !payload.password || !payload.firstName || !payload.lastName) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-        }
-
         const data = await api.user.updateUser(payload);
         return NextResponse.json(data);
     } catch (error) {
@@ -71,7 +57,6 @@ export async function PUT(request: NextRequest) {
     }
 }
 
-// Delete status (DELETE)
 export async function DELETE(request: NextRequest) {
     try {
         const payload = await request.json() as Payload;
