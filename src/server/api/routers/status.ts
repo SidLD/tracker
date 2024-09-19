@@ -4,23 +4,7 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 export const statusRouter = createTRPCRouter({  
 getStatus: protectedProcedure
     .query(async({ ctx, input }) => {
-        const status = await ctx.db.status.findMany({
-            where: {
-                NOT: {
-                    name: 'admin'
-                }
-            },
-            include: {
-                statusCategory: {
-                    select: {
-                        name: true,
-                        id: true,
-                        record: false
-                    }
-                },
-            
-            }
-        })
+        const status = await ctx.db.status.findMany({})
         return status;
     }),
 createStatus: protectedProcedure

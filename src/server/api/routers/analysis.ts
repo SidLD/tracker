@@ -34,16 +34,6 @@ getMonthRecords : protectedProcedure
                     }
                 },
                 include: {
-                    destination: {
-                        select: {
-                            name: true
-                        }
-                    },
-                    statustype: {
-                        select: {
-                            name: true
-                        }
-                    },
                     user: {
                         select: {
                             firstName: true,

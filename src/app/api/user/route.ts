@@ -10,7 +10,7 @@ export type Payload = {
     middleName?: string;
     extension?: string;
     title?: string;
-    role: string;
+    status: string;
 }
 
 export type Payload2 = {
@@ -22,7 +22,7 @@ export type Payload2 = {
     middleName?: string;
     extension?: string;
     title?: string;
-    role: string;
+    status: string
 }
 
 export async function POST(request: NextRequest) {
@@ -31,7 +31,6 @@ export async function POST(request: NextRequest) {
         const data = await api.user.createUser(payload);
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Error in POST /api/hello:', error);
         return NextResponse.json({ error: (error as Error).message || 'An unexpected error occurred' }, { status: 500 });
     }
 }

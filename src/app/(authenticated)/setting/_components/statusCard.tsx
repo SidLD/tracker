@@ -144,24 +144,6 @@ export function StatusCard() {
   }
 
 
-  const fetchDestination = async () => {
-    try {
-      try {
-        if(selectedItem){
-          await _axios.get('/api/statustype', {
-            params: {
-              status: selectedItem.id
-            }
-          }).then(({data}) => {
-            setStatusTypes(data)
-          })
-        }
-      } catch (error) { /* empty */ }
-    } catch (error) {
-      { /* empty */ }
-    }
-  }
-
   const handleCreateCategory = async () => {
     try {
       if(statusType && statusType.name?.length > 0 && selectedItem){
@@ -170,7 +152,6 @@ export function StatusCard() {
           status: selectedItem.id,
           id: statusType.id
         })
-        await fetchDestination()
       }
     } catch (error) {
       { /* empty */ }
@@ -185,7 +166,6 @@ export function StatusCard() {
     if(selectedItem){
       form.setValue("name", selectedItem.name)
       form.setValue("id", selectedItem.id)
-      void fetchDestination()
     }
   }, [selectedItem])
 
@@ -240,73 +220,6 @@ export function StatusCard() {
         </Form>
       </Card>
       <Separator className="my-2" />
-      {selectedItem && <Card>
-      <CardHeader>
-          <CardTitle>Status Type</CardTitle>
-          <CardDescription>Add Status Type</CardDescription>
-        </CardHeader>
-        <CardContent>
-        <Input
-              placeholder="Type..."
-              onChange={(e:any) => {
-                if(statusType){
-                  setStatusType({
-                    ...statusType,
-                    name: e.target.value,
-                  });
-                }
-              }}
-
-              value={statusType?.name}
-            />
-          <Separator  className="my-5"/>
-          <div>
-            <Table>
-              <TableCaption></TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {statusTypes?.map((statusType, index) => (
-                  <TableRow key={index}>
-                    <TableCell className="font-medium">{statusType.name}</TableCell>
-                    <TableCell className="grid grid-cols-2 gap-2">
-                        <Button variant={'outline'} className="" onClick={() => {
-                          setStatusType({
-                            status: selectedItem,
-                            name: statusType.name,
-                            id: statusType.id,
-                            statusCategory: undefined
-                          })
-                        }}>
-                            Update
-                        </Button>
-                        <Button>
-                            Delete
-                        </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-        <CardFooter className="grid grid-cols-2 gap-2">
-          <Button variant={'outline'} onClick={() => {
-            setStatusType({
-              id: null,
-              name: '',
-              status: selectedItem,
-              statusCategory: undefined
-            })
-
-          }}>Clear</Button>
-          <Button onClick={() => {handleCreateCategory()}} disabled={!selectedItem}>{statusType ? 'Save' : 'Add'}</Button>
-        </CardFooter>
-      </Card>}
       </div>
       <Separator className="md:hdden my-5" />
       <Card className="w-full md:w-2/3">

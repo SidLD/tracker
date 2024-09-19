@@ -36,8 +36,7 @@ register: publicProcedure
         message: "Username must be at least 8 characters.",
         }),
         extension: z.string().optional(),
-        title: z.string().optional(),
-        role: z.any()
+        title: z.string().optional()
     }))
     .mutation(async({ ctx, input }) => {
         const userFound = await ctx.db.user.findFirst({
@@ -56,7 +55,7 @@ register: publicProcedure
                 extension: input.extension,
                 title: input.title,
                 password: hashedPassword,
-                roleId: 1
+                statusId: 1
             }
         })
     })

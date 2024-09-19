@@ -6,9 +6,7 @@ getUsers: protectedProcedure
     .query(async({ ctx, input }) => {
         const users = await ctx.db.user.findMany({
             where: {
-              roleId: {
-                not: 1,
-              },
+                name: null,
             },
             select: { 
                 id: true,
@@ -18,7 +16,7 @@ getUsers: protectedProcedure
                 title: true,
                 extension: true,
                 updatedAt: true,
-                role: {
+                statustype: {
                     select: {
                         id: true,
                         name:true
@@ -26,18 +24,17 @@ getUsers: protectedProcedure
                 },
                 record: {
                     select: {
-                        destination: {
+                        locations: {
                             select: {
                                 id: true,
                                 name: true,
                             },
                         },
-                        statustype: {
-                            select: {
-                                id: true,
-                                name: true,
-                            },
-                        }
+                        dateFrom: true,
+                        dateTo: true,
+                        fundSource: true,
+                        purpose: true,
+                        documentTracker:true
                     },
                     orderBy: {
                         updatedAt: 'desc'
@@ -55,7 +52,7 @@ createUser: protectedProcedure
         firstName: z.string().min(3, 'Min 3'),
         middleName: z.string().optional(),
         lastName: z.string().min(3, 'Min 3'),
-        role: z.string().min(1, 'Role is Required'),
+        status: z.string()
     }))
     .mutation(async({ ctx, input }) => {
         const roleFound = await ctx.db.user.findFirst({
@@ -64,15 +61,23 @@ createUser: protectedProcedure
         if(roleFound){
             throw Error("User Already Exist")
         }
-        const password = await bcrypt.hash(`${input.firstName}${input.role}`, 10)
+        const password = await bcrypt.hash(`password`, 10)
+        console.log("data ine ",{
+            firstName: input.firstName,
+            lastName: input.lastName,
+            middleName: input.middleName,
+            title: input.title,
+            password: password,
+            statusId: parseInt(input.status)     
+        })
         return await ctx.db.user.create({
             data: {
                 firstName: input.firstName,
                 lastName: input.lastName,
                 middleName: input.middleName,
                 title: input.title,
-                roleId: parseInt(input.role),
-                password: password                      
+                password: password,
+                statusId: parseInt(input.status)     
             }
         })
     }),
@@ -83,7 +88,7 @@ updateUser: protectedProcedure
         firstName: z.string().min(3, 'Min 3'),
         middleName: z.string().optional(),
         lastName: z.string().min(3, 'Min 3'),
-        role: z.string().min(1, 'Role is Required'),
+        status: z.string().min(1, 'Status is Required'),
     }))
     .mutation(async({ ctx, input }) => {
         const userFound = await ctx.db.user.findFirst({
@@ -100,7 +105,7 @@ updateUser: protectedProcedure
                 lastName: input.lastName,
                 middleName: input.middleName,
                 title: input.title,
-                roleId: parseInt(input.role),                 
+                statusId: parseInt(input.status),                 
             },
             select: {
                 id: true

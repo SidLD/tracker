@@ -23,8 +23,8 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String
-  roleId        Int
-  role          Roles @relation(fields: [roleId], references: [id])
+  statusId   Int
+  statustype      Status  @relation(fields: [statusId], references: [id])
   record        Records[]
   createdAt      DateTime @default(now())
   updatedAt     DateTime  @updatedAt
@@ -36,32 +36,18 @@ model Records {
   user        User     @relation(fields: [userId], references: [id])
   dateFrom    DateTime
   dateTo      DateTime
-  statusTypeId   Int
-  statustype      StatusCategory  @relation(fields: [statusTypeId], references: [id])
-  destinationId  Int
-  destination    LocationCategory  @relation(fields: [destinationId], references: [id])
+  purpose     String
+  fundSource  String?
+  documentTracker String?
+  locations   LocationCategory[] @relation("RecordLocations")
   createdAt      DateTime @default(now())
   updatedAt     DateTime  @updatedAt
-}
-
-model Roles {
-  id        Int   @id @default(autoincrement())
-  name      String 
-  user      User[]
 }
 
 model Status {
   id        Int   @id @default(autoincrement())
   name      String
-  statusCategory StatusCategory[]
-}
-
-model StatusCategory {
-  id        Int   @id @default(autoincrement())
-  name      String
-  statusId Int
-  Status Status @relation(fields: [statusId], references: [id])
-  record    Records[]
+  user      User[]
 }
 
 model Locations { 
@@ -73,9 +59,9 @@ model Locations {
 model LocationCategory {
   id        Int   @id @default(autoincrement())
   name      String
-  locationId Int
-  location Locations @relation(fields: [locationId], references: [id])
-  record    Records[]
+  locationId  Int
+  location  Locations @relation(fields: [locationId], references: [id])
+  record    Records[]   @relation("RecordLocations")
 }
 
 

@@ -161,7 +161,7 @@ export function LocationCard() {
   const handleCreateCategory = async () => {
     try {
       if(destination && destination.name?.length > 0 && selectedLocation){
-        _axios.post('/api/destination', {
+        await _axios.post('/api/destination', {
           name: destination?.name,
           location: selectedLocation.id,
           id: destination.id

@@ -52,7 +52,7 @@ export function RegisterCard() {
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try{
       setSignUpLoading(true)
-      await axios.post('http://localhost:3000/api/user', data)
+      await axios.post('http://localhost:3000/api/admin', data)
         .then( async (data: any) => {
           toast({
             variant:"default",

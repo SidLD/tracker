@@ -1,14 +1,12 @@
 
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { authenticationRouter } from "./routers/authentication";
-import { roleRouter } from "./routers/role";
 import { locationRouter } from "./routers/location";
 import { statusRouter } from "./routers/status";
 import { userRouter } from "./routers/user";
 import { historyRouter } from "./routers/history";
 import { analysisRouter } from "./routers/analysis";
 import { destinationRouter } from "./routers/destination";
-import { statustypeRouter } from "./routers/statustype";
 
 /**
  * This is the primary router for your server.
@@ -17,14 +15,12 @@ import { statustypeRouter } from "./routers/statustype";
  */
 export const appRouter = createTRPCRouter({
   authentication: authenticationRouter,
-  role: roleRouter,
   location: locationRouter,
   status: statusRouter,
   user: userRouter,
   history: historyRouter,
   analysis: analysisRouter,
   destination: destinationRouter,
-  statustype: statustypeRouter
 });
 
 // export type definition of API

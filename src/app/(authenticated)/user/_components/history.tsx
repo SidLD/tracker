@@ -1,59 +1,95 @@
 import { Button } from '@/components/ui/button'
-import { ChevronRight, CreditCard, Pencil, Trash } from 'lucide-react'
-import React, { useContext, useEffect, useState } from 'react'
+import { CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react'
+import React, { useContext, useEffect, useMemo, useState } from 'react'
 import { type History as historyType } from '@/lib/types/history'
 import _axios from '@/lib/axios'
 import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Calendar as CalendarIcon } from "lucide-react";
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 import { type DateRange } from 'react-day-picker'
-import { StatusType, type Status } from '@/lib/types/status'
-import { type Location } from '@/lib/types/location'
-import { Calendar } from '@/components/ui/calendar'
-import { cn } from '@/lib/utils'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { HistoryContext, HistoryContextType } from '@/lib/context'
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Separator } from '@radix-ui/react-dropdown-menu'
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuGroup, DropdownMenuLabel, DropdownMenuPortal, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast'
 import {  format, subDays } from 'date-fns';
+import { Card, CardHeader, CardTitle, CardFooter, CardContent } from '@/components/ui/card'
+import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
+import { HistoryContext, HistoryContextType } from '@/lib/context'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { Destination, Location } from '@/lib/types/location'
+import { cn } from '@/lib/utils'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Calendar } from '@/components/ui/calendar'
+import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from '@/components/ui/table'
 
-
-const historySchema = z.object({
+export const historySchema = z.object({
   id: z.string().optional(),
-  statustype: z.string(),
-  destination: z.string(),
-  date: z.any(),
-
+  location: z.array(z.object({
+    id: z.number(),
+    name: z.string()
+  })),
+  date: z.date(),
+  purpose: z.string(),
+  documentTracker: z.string()
 })
 
+export type HistoryEntry = z.infer<typeof historySchema>
+
 export const History = () => {
-  const {user, location, status, getHistory, history} = useContext<HistoryContextType>(HistoryContext)  
+  const {selectUser} = useContext<HistoryContextType>(HistoryContext)  
   const [selectedHistory, setSelectedHistory] = useState<historyType | null>(null);
+  const [history, setHistory] = useState<historyType[]>([])
+  const [selectdDestination, setSelectedDestination] = useState<Destination[]>([]);
+  const [destinationOptions, setDestinationOptions] = useState<Destination[]>([]);
   const {toast} = useToast()
   const today = new Date();
   const defaultStartDate = subDays(today, 30);
-
   const [date, setDate] = React.useState<DateRange | undefined | any>({
     from: defaultStartDate,
     to: today,
   });
+  const [open, setOpen] = useState(false);  
 
-  const historyForm = useForm<z.infer<typeof historySchema>>({
+  const form = useForm<HistoryEntry>({
     resolver: zodResolver(historySchema),
     defaultValues: {
-      statustype: '',
-      destination: '',
+      location: [],
+      date: new Date(),
+      purpose: '',
+      documentTracker: ''
     },
   })
+
+  const fetchDestination = async () => {
+    try {
+      try {
+          await _axios.get('/api/destination', {
+            params: {
+              location: 0
+            }
+          }).then(({data}) => {
+            setDestinationOptions(data as Destination[])
+          })
+      } catch (error) { /* empty */ }
+    } catch (error) { /* empty */ }
+  }
+
+  const getHistory = async () => {
+    try {
+      if(selectUser?.id){
+        const response = await _axios.get('/api/history', {
+          params: {
+            userId: selectUser.id
+          }
+        });
+      setHistory(response.data)
+      }
+    } catch (error) {
+      console.log('err', error)
+    }
+  }
 
   const handleDelete = async (id:string | undefined) => {
     try {
@@ -87,139 +123,138 @@ export const History = () => {
     setSelectedHistory(data);
   }
 
-  const onUpdateHistory = async (data: z.infer<typeof historySchema>) => {
+  // Add location to form
+  const handleAddLocation = (location:Destination) => {
+    if (!selectdDestination.some((des) => des.id === location.id)) {
+      setSelectedDestination([...selectdDestination, location]);
+    }
+  };
+
+  const onUpdateHistory = async (data:any) => {
     try {
       if(selectedHistory){
-          const response = await _axios.put('/api/history', {
-            id: selectedHistory.id,
-            location: parseInt(data.destination),
-            status: parseInt( data.statustype),
-            dateFrom: date?.from,
-            dateTo: date?.to
-          })
-          if(response.status == 200){
-            await getHistory()
-            setSelectedHistory(null)
-          }
+        const response = await _axios.put('/api/history', {
+          id: selectedHistory.id,
+          location: data.location,
+          dateFrom: date?.from,
+          dateTo: date?.to,
+          purpose: data.purpose,
+          documentTracker : data.documentTracker,
+          user: selectUser.id
+        })
+        if(response.status == 200){
+          await getHistory()
+        }
+      }else{
+        const response = await _axios.post('/api/history', {
+          location: data.location,
+          dateFrom: date?.from,
+          dateTo: date?.to,
+          purpose: data.purpose,
+          documentTracker : data.documentTracker,
+          user: selectUser.id
+        })
+        if(response.status == 200){
+          await getHistory()
+          setSelectedHistory(null)
+        }
+       
       }
     } catch (error) {
       console.log(error)
     }
   }
 
+  const onSubmit = async (data: HistoryEntry) => {
+    try {
+      const payload = {...data, dateFrom: date?.from, dateTo: date?.to, date: undefined, location: selectdDestination, user: selectUser}
+        console.log(payload)
+        await onUpdateHistory(payload);
+        form.reset()
+    } catch (err) {
+      
+    } 
+  }
+
+  const handleClear = () => {
+    try {
+      setDate(defaultStartDate)
+      setSelectedDestination([])
+      form.reset()
+    } catch (error) {
+      
+    }
+  }
+
   const makeHistoryForm = () => {
-    return <Form {...historyForm}>
-      <form onSubmit={historyForm.handleSubmit(onUpdateHistory)}>
-            <FormField
-              control={historyForm.control}
-              name="id"
-              render={({ field }) => (
-                  <FormItem className="hidden">
-                  <FormControl>
-                      <Input placeholder="Input Title" {...field} type='hidden'/>
-                  </FormControl>
-                  </FormItem>
-              )}
-            />
-            <FormField
-              control={historyForm.control}
-              name="destination"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <FormItem className=" relative my-5">
-                  <FormLabel>Location</FormLabel>
-                  <FormControl>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button className='ml-2' variant="outline">Select Here</Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56">
-                      <DropdownMenuLabel>Location - Destination</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuGroup>
-                            {location.map((loc: Location, index: number) => {
-                              return <>
-                                <DropdownMenuSub key={index}>
-                                  <DropdownMenuSubTrigger>
-                              <span>{loc.name}</span>
-                            </DropdownMenuSubTrigger>
-                            <DropdownMenuPortal>
-                              <DropdownMenuSubContent>
-                                  {loc.destinations?.map((des, index2) => {
-                                    return <DropdownMenuItem key={index2} onClick={() => {onChange(des.id?.toString())}} >
-                                    <span>{des.name}</span>
-                                  </DropdownMenuItem>
-                                  })}
-                              </DropdownMenuSubContent>
-                            </DropdownMenuPortal>
-                        </DropdownMenuSub>
-                        </>
-                            })}
-                      </DropdownMenuGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  </FormControl>
-                  <FormMessage className=" absolute -bottom-5"/>
-                  </FormItem>
-              )}
-            />
-            <FormField
-              control={historyForm.control}
-              name="statustype"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <FormItem className=" relative my-5">
-                  <FormLabel>Status</FormLabel>
-                  <FormControl >
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button className='ml-5' variant="outline">Select Here</Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56">
-                      <DropdownMenuLabel>Status</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuGroup>
-                            {status.map((status: Status, index: number) => {
-                              return <>
-                                <DropdownMenuSub>
-                                  <DropdownMenuSubTrigger key={index}>
-                              <span>{status.name}</span>
-                            </DropdownMenuSubTrigger>
-                            <DropdownMenuPortal>
-                              <DropdownMenuSubContent>
-                                  {status.statusCategory?.map((des: StatusType, index: number) => {
-                                    return <DropdownMenuItem key={index} onClick={() => {onChange(des.id?.toString())}}>
-                                    <span>{des.name}</span>
-                                  </DropdownMenuItem>
-                                  })}
-                              </DropdownMenuSubContent>
-                            </DropdownMenuPortal>
-                        </DropdownMenuSub>
-                        </>
-                            })}
-                      </DropdownMenuGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  </FormControl>
-                  <FormMessage className=" absolute -bottom-5"/>
-                  </FormItem>
-              )}
-            />
-            <FormField
-              control={historyForm.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem className=" relative my-5">
-                  <FormLabel>Dates</FormLabel>
-                  <FormControl>
-                  <div className={cn("grid gap-2")}>
+    return (
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <FormItem>
+            <FormLabel>Select a location</FormLabel>
+            <FormControl>
+              <Select
+                onValueChange={(value) => {
+                  const data = destinationOptions.find(
+                    (loc: Destination) => loc.id === Number(value)
+                  );
+                  if (data) handleAddLocation(data);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {destinationOptions.map((loc: Destination) => (
+                    <SelectItem key={loc.id} value={loc.id as unknown as string}>
+                      {loc.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormControl>
+          </FormItem>
+  
+          {/* Display Selected Locations as part of the form */}
+          {selectdDestination.length > 0 && (
+            <div>
+              <h3 className="my-4 text-lg font-semibold">Selected Locations</h3>
+              {selectdDestination.map((location, index) => (
+                <div key={location.id} className="my-2">
+                  <p>
+                    <strong>Location {index + 1}:</strong> {location.name}
+                  </p>
+                  <Input
+                    type="hidden"
+                    name={`location.${index}.id`}
+                    value={location.id as number}
+                  />
+                  <Input
+                    type="hidden"
+                    name={`location.${index}.name`}
+                    value={location.name}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+  
+          <FormField
+            control={form.control}
+            name="date"
+            render={({ field }) => (
+              <FormItem className="relative my-5">
+                <FormLabel>Date</FormLabel>
+                <FormControl>
+                  <div className="grid gap-2">
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
                           id="date"
-                          variant={"outline"}
-                          className={cn(
-                            "w-[300px] justify-start text-left font-normal",
+                          variant="outline"
+                          className={`w-[300px] justify-start text-left font-normal ${
                             !date && "text-muted-foreground"
-                          )}
+                          }`}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {date?.from ? (
@@ -248,102 +283,230 @@ export const History = () => {
                       </PopoverContent>
                     </Popover>
                   </div>
-                  </FormControl>
-                  <FormMessage className=" absolute -bottom-5"/>
-                  </FormItem>
-              )}
-            />
+                </FormControl>
+                <FormMessage className="absolute -bottom-5" />
+              </FormItem>
+            )}
+          />
 
-       <Button type='submit' onClick={() => onUpdateHistory}>Confirm</Button>
-    </form>
-  </Form>
-  }
+          <FormField
+                  control={form.control}
+                  name="purpose"
+                  render={({ field }) => (
+                      <FormItem className=" relative">
+                      <FormLabel>Purpose</FormLabel>
+                      <FormControl>
+                          <Textarea placeholder="Input Name" {...field} />
+                      </FormControl>
+                      <FormMessage className=" absolute -bottom-5"/>
+                      </FormItem>
+                  )}
+                  />
+
+            <FormField
+                  control={form.control}
+                  name="documentTracker"
+                  render={({ field }) => (
+                      <FormItem className=" relative">
+                      <FormLabel>Purpose</FormLabel>
+                      <FormControl>
+                      <Input  
+                placeholder="Enter document tracker"
+                {...field}
+              />
+                      </FormControl>
+                      <FormMessage className=" absolute -bottom-5"/>
+                      </FormItem>
+                  )}
+                  />
+
+          <div className='w-full grid grid-cols-1 md:grid-cols-2 gap-2'>
+            <Button type='button' onClick={() =>  {handleClear()}} variant={'link'} className="mt-4">
+              Clear
+            </Button>
+            <Button type="submit" className="mt-4">
+              Submit
+            </Button>
+          </div>
+        </form>
+      </Form>
+    );
+  };
 
   useEffect(() => {
     const init = async (): Promise<void> => {
       await getHistory()
+      await fetchDestination()
     }
     void init()
     
-  }, [user])
+  }, [selectUser])
 
   useEffect(() => {
     if(selectedHistory){
-      historyForm.setValue('id', selectedHistory.id)
-      const selectedDestination = selectedHistory?.destination?.id?.toString() ?? '';
-      const selectedStatusType = selectedHistory?.statustype?.id?.toString() ?? '';
-      historyForm.setValue('destination', selectedDestination)
-      historyForm.setValue('statustype', selectedStatusType)
+      form.setValue('purpose', selectedHistory.purpose)
+      form.setValue('documentTracker', selectedHistory.documentTracker)
       setDate({
         from: selectedHistory.dateFrom,
         to: selectedHistory.dateTo
       });
+      const newLocations = selectedHistory.locations as any as Destination[]
+      setSelectedDestination(newLocations)
+      setOpen(true)
     }else{
-      historyForm.setValue('destination', '')
-      historyForm.setValue('statustype', '')
+      handleClear()
     }
   }, [selectedHistory])
 
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterDate, setFilterDate] = React.useState<DateRange | undefined | any>({
+    from: defaultStartDate,
+    to: today,
+  });
+
+  const filteredData = useMemo(() => {
+   if(filterDate){
+    return history.filter(entry => {
+      const matchesSearch = 
+        entry.purpose.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        entry.documentTracker.toLowerCase().includes(searchTerm.toLowerCase())
+      
+      
+      const entryDateFrom = new Date(entry.dateFrom)
+      const entryDateTo = new Date(entry.dateTo)
+      
+      const matchesDateFrom = entryDateFrom >= filterDate.from && entryDateFrom <= filterDate.to;
+
+      const matchesDateTo = entryDateTo <= filterDate.to && entryDateTo >= filterDate.from;
+      
+      return matchesSearch && matchesDateFrom && matchesDateTo
+    })
+   }else{
+    return history;
+   }
+
+  }, [history, searchTerm, filterDate])
+
   return (
    <>
-      <div className="grid gap-3">
-        {history?.map((data: historyType, index: number) => {
-          return <div key={index}>
-            <div className="font-semibold flex justify-between items-center">
-              <span>{new Date(data.dateFrom).toDateString()}</span>
-              <span><ChevronRight /></span>
-              <span>{new Date(data.dateTo).toDateString()}</span>
-              <span>
-              <Dialog >
-              <DialogTrigger asChild>
-                <Button variant="ghost" className='w-4 ml-2 mx-1 p-0' onClick={() => handleSelect(data)}>
-                  <Pencil  />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Update History</DialogTitle>
-                </DialogHeader>
-                {makeHistoryForm()}
+   <Card className="overflow-hidden" x-chunk="dashboard-05-chunk-4">
+    <CardHeader className="flex flex-row items-start bg-muted/50">
+      <div className="grid gap-0.5">
+        <CardTitle className="group flex items-center gap-2 text-lg">
+          History
+        <Dialog open={open} onOpenChange={setOpen} >
+          <DialogTrigger asChild>
+            <Button variant="outline" disabled={!selectUser} onClick={() => {setOpen(!open)}}>+</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>New History</DialogTitle>
+            </DialogHeader>
+            <DialogContent>
+              {makeHistoryForm()}
+              <DialogFooter className="sm:justify-start">
+                  
+                </DialogFooter>
             </DialogContent>
-              </Dialog>
-              </span>
-          <div className='w-[100%]'>
-            <Dialog>
-              <DialogTrigger asChild>
-              <Button className='float-right w-8 h-8 p-0 bg-red-500'>
-                <Trash  />
-              </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Confirm Delete</DialogTitle>
-                </DialogHeader>
-                <Button className=' bg-red-500' onClick={async () => { void handleDelete(data.id)}}>Confirm</Button>
-            </DialogContent>
-          </Dialog>
-          </div>
-            </div>
-            <Separator className='my-5' />
-            <dl className="grid gap-3">
-              <div className="flex items-center justify-between">
-                <dt className="flex items-center gap-1 text-muted-foreground">
-                  <CreditCard className="h-4 w-4" />
-                  Status
-                </dt>
-                <dd>{data?.statustype?.name}</dd>  
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="flex items-center gap-1 text-muted-foreground">
-                  <CreditCard className="h-4 w-4" />
-                  Location
-                </dt>
-                <dd>{data?.destination?.name}</dd>
-              </div>
-            </dl>
-          </div>
-        })}
+          </DialogContent>
+        </Dialog>
+        </CardTitle>
       </div>
+    </CardHeader>
+    <CardContent className='w-full'>
+    <div className="space-y-4">
+      <div className="flex space-x-4">
+        <Input
+          placeholder="Search purpose or document tracker"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="max-w-sm"
+        />
+        <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            id="date"
+            variant="outline"
+            className={`w-[300px] justify-start text-left font-normal ${
+              !filterDate && "text-muted-foreground"
+            }`}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {filterDate?.from ? (
+              filterDate.to ? (
+                <>
+                  {format(filterDate.from, "LLL dd, y")} -{" "}
+                  {format(filterDate.to, "LLL dd, y")}
+                </>
+              ) : (
+                format(filterDate.from, "LLL dd, y")
+              )
+            ) : (
+              <span>Pick a date</span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            initialFocus
+            mode="range"
+            defaultMonth={date.from}
+            selected={filterDate}
+            onSelect={setFilterDate}
+          />
+        </PopoverContent>
+        </Popover>
+      </div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Date From</TableHead>
+            <TableHead>Date To</TableHead>
+            <TableHead>Purpose</TableHead>
+            <TableHead>Document Tracker</TableHead>
+            <TableHead>Locations</TableHead>
+            <TableHead>Action</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredData.map((entry) => {
+            return (
+              <TableRow key={entry.id}>
+                <TableCell>{format(new Date(entry.dateFrom), 'PPP')}</TableCell>
+                <TableCell>{format(new Date(entry.dateTo), 'PPP')}</TableCell>
+                <TableCell>{entry.purpose}</TableCell>
+                <TableCell>{entry.documentTracker}</TableCell>
+                <TableCell>{entry.locations.map((loc: { name: any }) => loc.name).join(', ')}</TableCell>
+                <TableCell>
+                  <Button onClick={() => {handleSelect(entry)}}>Select</Button>
+                </TableCell>
+              </TableRow>
+            )
+          })}
+        </TableBody>
+      </Table>
+    </div>
+    </CardContent>
+   <CardFooter className="flex flex-row items-center border-t bg-muted/50 px-6 py-3">
+     <Pagination className="ml-auto mr-0 w-auto">
+       <PaginationContent>
+         <PaginationItem>
+           <Button size="icon" variant="outline" className="h-6 w-6">
+             <ChevronLeft className="h-3.5 w-3.5" />
+             <span className="sr-only">Previous Order</span>
+           </Button>
+         </PaginationItem>
+         <PaginationItem>
+           <Button size="icon" variant="outline" className="h-6 w-6">
+             <ChevronRight className="h-3.5 w-3.5" />
+             <span className="sr-only">Next Order</span>
+           </Button>
+         </PaginationItem>
+       </PaginationContent>
+     </Pagination>
+   </CardFooter>
+ </Card>
+     
    </>
   )
 }

@@ -1,4 +1,3 @@
-
 import { HydrateClient } from "@/trpc/server";
 import { LoginCard } from "./_components/login/_components/login";
 import { Toaster } from "@/components/ui/toaster";

@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
@@ -52,7 +52,7 @@ import { Label } from '@/components/ui/label'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuGroup, DropdownMenuLabel, DropdownMenuPortal, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
 import { z } from 'zod'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { useForm } from 'react-hook-form'
+import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { EducationalTitles, type User } from '@/lib/types/user'
@@ -72,10 +72,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import _axios from '@/lib/axios'
+import { useToast } from '@/hooks/use-toast'
 import { HistoryContext } from '@/lib/context'
 import { History } from './_components/history'
-import { useToast } from '@/hooks/use-toast'
-import { type Role } from '@/lib/types/role'
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -83,15 +82,9 @@ const formSchema = z.object({
   firstName: z.string().min(3, 'Min 3'),
   middleName: z.string().optional(),
   lastName: z.string().min(3, 'Min 3'),
-  role: z.any()
+  status: z.string(),
 })
 
-const historySchema = z.object({
-  id: z.string().optional(),
-  status: z.number(),
-  location: z.number(),
-  date: z.any(),
-})
 
 const itemsPerPage = 10; 
 
@@ -104,15 +97,13 @@ const Page = () => {
       firstName:"",
       middleName:"",
       lastName:"",
-      role: 0
+      status: ""
     },
   })
   const [selectUser, setSelectUser] = useState<User | null>(null)
   const [status, setStatus] = useState<Status[]>([]);
   const [location, setLocation] = useState<Location[]>([]);
-  const [role, setRoles] = useState<Role[]>([]);
   const [users, setUsers] = useState<User[]>([])
-  const [history, setHistory] = useState<historyType[]>([])
    
   const [filters, setFilters] = useState({
     title: '',
@@ -120,14 +111,6 @@ const Page = () => {
     destination: '',
     search: ''
   });
- 
-  const historyForm = useForm<z.infer<typeof historySchema>>({
-    resolver: zodResolver(historySchema),
-    defaultValues: {
-      status: 0,
-      location: 0
-    },
-  })
 
   const onCreateUser = async (data: z.infer<typeof formSchema>) => {
     try {
@@ -193,16 +176,6 @@ const Page = () => {
     setUsers(await response.json() as User[])
   }
 
-  const getRoles = async () => {
-    const response = await fetch('/api/role', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    setRoles(await response.json() as Role[])
-  }
-
   const getLocation = async () => {
     try {
       const response = await fetch('/api/location', {
@@ -257,7 +230,6 @@ const Page = () => {
       form.setValue('firstName', selectUser.firstName)
       form.setValue('middleName', selectUser.middleName)
       form.setValue('lastName', selectUser.lastName)
-      form.setValue('role', selectUser.role.id.toString())
     }
   }
 
@@ -340,7 +312,7 @@ const Page = () => {
 
           <FormField
               control={form.control}
-              name="role"
+              name="status"
               render={({ field }) => (
                   <FormItem className=" relative my-5">
                   <FormLabel>Status</FormLabel>
@@ -355,8 +327,8 @@ const Page = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {role.map((role, index) => {
-                          return  <SelectItem key={index} value={`${role.id.toString()}`}>{role.name}</SelectItem>
+                        {status.map((status, index) => {
+                          return  <SelectItem key={index} value={`${status.id.toString()}`}>{status.name}</SelectItem>
                         })}
                       </SelectGroup>
                     </SelectContent>
@@ -371,192 +343,6 @@ const Page = () => {
   </Form>
   }
 
-  const makeHistoryForm = () => {
-    return <Form {...historyForm}>
-      <form onSubmit={historyForm.handleSubmit(onCreateHistory)}>
-            <FormField
-              control={historyForm.control}
-              name="id"
-              render={({ field }) => (
-                  <FormItem className="hidden">
-                  <FormControl>
-                      <Input placeholder="Input Title" {...field} type='hidden'/>
-                  </FormControl>
-                  </FormItem>
-              )}
-            />
-            <FormField
-              control={historyForm.control}
-              name="location"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <FormItem className=" relative my-5">
-                  <FormLabel>Location</FormLabel>
-                  <FormControl>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button className='ml-2' variant="outline">Select Here</Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56">
-                      <DropdownMenuLabel>Location - Destination</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuGroup>
-                            {location.map((loc: Location, index: number) => {
-                              return <>
-                                <DropdownMenuSub>
-                                  <DropdownMenuSubTrigger key={index}>
-                              <span>{loc.name}</span>
-                            </DropdownMenuSubTrigger>
-                            <DropdownMenuPortal>
-                              <DropdownMenuSubContent>
-                                  {loc.destinations?.map((des, index) => {
-                                    return <DropdownMenuItem key={index} onClick={() => {onChange(des.id)}} >
-                                    <span>{des.name}</span>
-                                  </DropdownMenuItem>
-                                  })}
-                              </DropdownMenuSubContent>
-                            </DropdownMenuPortal>
-                        </DropdownMenuSub>
-                        </>
-                            })}
-                      </DropdownMenuGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  </FormControl>
-                  <FormMessage className=" absolute -bottom-5"/>
-                  </FormItem>
-              )}
-            />
-            <FormField
-              control={historyForm.control}
-              name="status"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <FormItem className=" relative my-5">
-                  <FormLabel>Status</FormLabel>
-                  <FormControl >
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button className='ml-5' variant="outline">Select Here</Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56">
-                      <DropdownMenuLabel>Status</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuGroup>
-                            {status.map((status: Status, index: number) => {
-                              return <>
-                                <DropdownMenuSub>
-                                  <DropdownMenuSubTrigger key={index}>
-                                  <span>{status.name}</span>
-                            </DropdownMenuSubTrigger>
-                            <DropdownMenuPortal>
-                              <DropdownMenuSubContent>
-                                  {status.statusCategory?.map((des: StatusType, index: number) => {
-                                    return <DropdownMenuItem key={index} onClick={() => {onChange(des.id)}}>
-                                    <span>{des.name}</span>
-                                  </DropdownMenuItem>
-                                  })}
-                              </DropdownMenuSubContent>
-                            </DropdownMenuPortal>
-                        </DropdownMenuSub>
-                        </>
-                            })}
-                      </DropdownMenuGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  </FormControl>
-                  <FormMessage className=" absolute -bottom-5"/>
-                  </FormItem>
-              )}
-            />
-            <FormField
-              control={historyForm.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem className=" relative my-5">
-                  <FormLabel>Date</FormLabel>
-                  <FormControl>
-                  <div className={cn("grid gap-2")}>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          id="date"
-                          variant={"outline"}
-                          className={cn(
-                            "w-[300px] justify-start text-left font-normal",
-                            !date && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {date?.from ? (
-                            date.to ? (
-                              <>
-                                {format(date.from, "LLL dd, y")} -{" "}
-                                {format(date.to, "LLL dd, y")}
-                              </>
-                            ) : (
-                              format(date.from, "LLL dd, y")
-                            )
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          initialFocus
-                          mode="range"
-                          defaultMonth={date?.from}
-                          selected={date}
-                          onSelect={setDate}
-                          {...field}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  </FormControl>
-                  <FormMessage className=" absolute -bottom-5"/>
-                  </FormItem>
-              )}
-            />
-
-       <Button type='submit' onClick={() => onCreateHistory}>Confirm</Button>
-    </form>
-  </Form>
-  }
-
-  const onCreateHistory = async (data: z.infer<typeof historySchema>) => {
-    try {
-      if(selectUser && data.location > 0 && data.status > 0){
-        const response = await _axios.post('/api/history', {
-          ...data,
-          user: selectUser.id,
-          dateFrom: date?.from,
-          dateTo: date?.to
-        })
-        if (!response.status) {
-          toast({
-            variant:"destructive",
-            title : "Error",
-            description : ""
-          })
-        }else{
-          toast({
-            variant:"default",
-            title : "Success",
-            description : `Successfully Created History`
-          })
-          await getHistory();
-        }
-      }else{
-        toast({
-          variant:"destructive",
-          title : "Error",
-          description : "Field Required"
-        })
-      } 
-    } catch (error) {
-      console.log(error)
-    }
-  }
 
   const onDeleteUser = async () => {
     try {
@@ -586,20 +372,6 @@ const Page = () => {
     }
   }
 
-  const getHistory = async () => {
-    try {
-      if(selectUser?.id){
-        const response = await _axios.get('/api/history', {
-          params: {
-            userId: selectUser.id
-          }
-        });
-      setHistory(response.data)
-      }
-    } catch (error) {
-      console.log('err', error)
-    }
-  }
 
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(users.length / itemsPerPage);
@@ -615,11 +387,11 @@ const Page = () => {
         let nameMatch = true;
        
         if(statustype != 'All' && statustype != ''){
-           statusMatch = latestRecord?.statustype?.name === statustype;
+           statusMatch = user.statustype.name === statustype;
         }
 
         if(destination != 'All' && destination != '') {
-          destinationMatch = latestRecord?.destination?.name === destination;
+          destinationMatch = latestRecord?.location.name === destination;
         }
 
         if(title != 'All' && title != ''){
@@ -644,20 +416,86 @@ const Page = () => {
       await Promise.all([
         getUsers(),
         getLocation(),
-        getStatus(),
-        getRoles()
+        getStatus()
       ]);
     };
     void init().catch()
   }, [])
 
   return (
-  <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
-    <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
-      <Tabs defaultValue="week">
-        <div className="flex items-center">
-          <div className="ml-auto flex items-center gap-2">
-          <Dialog>
+  <main className="grid grid-cols-1 px-2">
+      <Card className="overflow-hidden" x-chunk="dashboard-05-chunk-4" >
+        <CardHeader className="flex flex-row items-start bg-muted/50">
+          <div className="grid gap-0.5">
+            <CardTitle className="group flex items-center gap-2 just text-lg">
+              Details
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" className='w-5 mx-1 p-0' onClick={() => {handleUpdate()}} disabled={!selectUser}>
+                    <Pencil className='' />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Edit User</DialogTitle>
+                  </DialogHeader>
+                  {makeForm()}
+                </DialogContent>
+              </Dialog>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" className='w-5 mx-1 p-0' disabled={!selectUser}>
+                    <Trash2 className='' />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Delete User</DialogTitle>
+                  </DialogHeader>
+                    <p>Confirm Delete?</p>
+                    <Button variant={'destructive'} onClick={() => {onDeleteUser()}}>Confirm</Button>
+                </DialogContent>
+              </Dialog>
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6 grid grid-cols-2 gap-2  text-sm">
+                <div>
+                  <div className='grid grid-cols-2'>
+                      <Label>Position/Designation</Label>
+                      {selectUser?.title}
+                  </div>
+                  <div className='grid grid-cols-2'>
+                      <Label>First Name</Label>
+                      {selectUser?.firstName}
+                  </div>
+                  <div className='grid grid-cols-2'>
+                      <Label>Middle Name</Label>
+                      {selectUser?.middleName}
+                  </div>
+                  <div className='grid grid-cols-2'>
+                      <Label>Last Name</Label>
+                      {selectUser?.lastName}
+                  </div>
+                  <div className='grid grid-cols-2'>
+                      <Label>Latest Status</Label>
+                      {selectUser?.record && selectUser?.record[0]?.statustype?.name}
+                  </div>
+
+                </div>
+        </CardContent>
+      </Card>
+    <Separator className='my-2' />
+    <div className='grid gap-2 grid-cols-1 lg:grid-cols-3'>
+    <div className="">
+          <Card x-chunk="dashboard-05-chunk-3">
+            <CardHeader className="px-7">
+              <CardTitle>User Management</CardTitle>
+              <CardDescription>
+                <div className='flex justify-between'>
+                  <p>Overview</p>
+                  <div>
+                  <Dialog>
             <DialogTrigger asChild>
               <Button variant="outline" onClick={() => {
                   setSelectUser(null)
@@ -666,10 +504,10 @@ const Page = () => {
                   form.resetField('middleName')
                   form.resetField('lastName')
                   form.resetField('title')
-                  form.resetField('role')
+                  form.resetField('status')
                 }}>
                 <File className="h-3.5 w-3.5 mr-2" />
-                <span>New Data</span></Button>
+                <span>New User</span></Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
@@ -677,25 +515,16 @@ const Page = () => {
               </DialogHeader>
               {makeForm()}
             </DialogContent>
-          </Dialog>
-          </div>
-        </div>
-        <TabsContent value="week">
-          <Card x-chunk="dashboard-05-chunk-3">
-            <CardHeader className="px-7">
-              <CardTitle>User Management</CardTitle>
-              <CardDescription>
-                Overview
+              </Dialog>
+                  </div>
+                </div>
               </CardDescription>
+              
             </CardHeader>
             <CardContent>
-            <div className="ml-auto flex items-center gap-2">
-                  <Input 
-                    placeholder='Search...'   
-                    onChange={(e) => setFilters({ ...filters, search: e.target.value })} 
-                  />
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+              <div className="ml-auto grid grid-cols-2 items-center gap-2">
+              <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                       <Button className='ml-2' variant="outline">Location</Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56">
@@ -756,20 +585,26 @@ const Page = () => {
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <Button onClick={() => setFilters({ ...filters, statustype: '' })}>Clear</Button>
+                  <div className='ml-2 col-span-2'>
+                    <Input 
+                      placeholder='Search...'   
+                      onChange={(e) => setFilters({ ...filters, search: e.target.value })} 
+                    />
+                  </div>
                 </div>
               <Separator className='my-2' />
             <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="hidden sm:table-cell">
+            {/* <TableHead className="hidden sm:table-cell">
               Position/Designation
-            </TableHead>
+            </TableHead> */}
             <TableHead className="hidden sm:table-cell">
               Name
             </TableHead>
             <TableHead>Field</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Location</TableHead>
+            {/* <TableHead>Status</TableHead>
+            <TableHead>Location</TableHead> */}
             <TableHead className="hidden md:table-cell">Last Update</TableHead>
             <TableHead>Select</TableHead>
           </TableRow>
@@ -777,27 +612,17 @@ const Page = () => {
         <TableBody>
           {paginatedUsers.map((user, index) => (
             <TableRow key={index} className="bg-accent">
-              <TableCell>
+              {/* <TableCell>
                 <div className="font-medium">{user.title}</div>
-              </TableCell>
+              </TableCell> */}
               <TableCell className="hidden sm:table-cell">
                 <div className="font-medium">{user.firstName} {user.lastName}</div>
               </TableCell>
               <TableCell className="hidden sm:table-cell">
-                <div className="font-medium">{user?.role?.name}</div>
-              </TableCell>
-              <TableCell>
-                <Badge className="text-xs" variant="secondary">
-                    {user?.record?.[0]?.statustype?.name ?? ''}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Badge className="text-xs" variant="secondary">
-                    {user?.record?.[0]?.destination?.name ?? ''}
-                </Badge>
+                <div className="font-medium">{user?.statustype?.name}</div>
               </TableCell>
               <TableCell className="hidden md:table-cell">
-                {new Date(user.updatedAt).toString()}
+                {new Date(user.updatedAt).toLocaleDateString()}
               </TableCell>
               <TableCell>
                 <Button onClick={() =>{ handleSelect(user)}}>Select</Button>
@@ -826,124 +651,14 @@ const Page = () => {
         </button>
       </div>
               
-            </CardContent>
+          </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
     </div>
-    <div>
-      <Card className="overflow-hidden" x-chunk="dashboard-05-chunk-4" >
-        <CardHeader className="flex flex-row items-start bg-muted/50">
-          <div className="grid gap-0.5">
-            <CardTitle className="group flex items-center gap-2 just text-lg">
-              Details
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="ghost" className='w-5 mx-1 p-0' onClick={() => {handleUpdate()}} disabled={!selectUser}>
-                    <Pencil className='' />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Edit User</DialogTitle>
-                  </DialogHeader>
-                  {makeForm()}
-                </DialogContent>
-              </Dialog>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="ghost" className='w-5 mx-1 p-0' disabled={!selectUser}>
-                    <Trash2 className='' />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Delete User</DialogTitle>
-                  </DialogHeader>
-                    <p>Confirm Delete?</p>
-                    <Button variant={'destructive'} onClick={() => {onDeleteUser()}}>Confirm</Button>
-                </DialogContent>
-              </Dialog>
-            </CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="p-6 grid grid-cols-1 gap-2 text-sm">
-                <div>
-                  <div className='grid grid-cols-2'>
-                      <Label>Position/Designation</Label>
-                      {selectUser?.title}
-                  </div>
-                  <div className='grid grid-cols-2'>
-                      <Label>First Name</Label>
-                      {selectUser?.firstName}
-                  </div>
-                  <div className='grid grid-cols-2'>
-                      <Label>Middle Name</Label>
-                      {selectUser?.middleName}
-                  </div>
-                  <div className='grid grid-cols-2'>
-                      <Label>Last Name</Label>
-                      {selectUser?.lastName}
-                  </div>
-                  <div className='grid grid-cols-2'>
-                      <Label>Field</Label>
-                      {selectUser?.role.name}
-                  </div>
-                  <div className='grid grid-cols-2'>
-                      <Label>Latest Status</Label>
-                      {selectUser?.record && selectUser?.record[0]?.statustype?.name}
-                  </div>
-                  <div className='grid grid-cols-2'>
-                      <Label>Latest Location</Label>
-                      {selectUser?.record && selectUser?.record[0]?.destination?.name}
-                  </div>
-                </div>
-        </CardContent>
-      </Card>
-      <Separator className='my-2'/>
-      <Card className="overflow-hidden" x-chunk="dashboard-05-chunk-4">
-        <CardHeader className="flex flex-row items-start bg-muted/50">
-          <div className="grid gap-0.5">
-            <CardTitle className="group flex items-center gap-2 text-lg">
-              History
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" disabled={!selectUser}>+</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>New History</DialogTitle>
-              </DialogHeader>
-              {makeHistoryForm()}
-            </DialogContent>
-          </Dialog>
-            </CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="p-6 text-sm">
-          <HistoryContext.Provider value={{user: selectUser, status, location, getHistory, history}}> 
-            <History />
-          </HistoryContext.Provider>
-        </CardContent>
-        <CardFooter className="flex flex-row items-center border-t bg-muted/50 px-6 py-3">
-          <Pagination className="ml-auto mr-0 w-auto">
-            <PaginationContent>
-              <PaginationItem>
-                <Button size="icon" variant="outline" className="h-6 w-6">
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                  <span className="sr-only">Previous Order</span>
-                </Button>
-              </PaginationItem>
-              <PaginationItem>
-                <Button size="icon" variant="outline" className="h-6 w-6">
-                  <ChevronRight className="h-3.5 w-3.5" />
-                  <span className="sr-only">Next Order</span>
-                </Button>
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        </CardFooter>
-      </Card>
+    <div className='col-span-2'>
+        <HistoryContext.Provider value={{selectUser, status}}> 
+          <History />
+        </HistoryContext.Provider>
+    </div>
     </div>
   </main>
   )

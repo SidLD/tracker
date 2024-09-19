@@ -45,7 +45,6 @@ import {
   Tabs,
   TabsContent,
 } from "@/components/ui/tabs";
-import { type Role } from '@/lib/types/role';
 import { type User } from '@/lib/types/user';
 import { Separator } from '@/components/ui/separator';
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
@@ -97,9 +96,9 @@ const Page = () => {
            statusMatch = latestRecord?.statustype?.name === statustype;
         }
 
-        if(destination != 'All' && destination != '') {
-          destinationMatch = latestRecord?.destination?.name === destination;
-        }
+        // if(destination != 'All' && destination != '') {
+        //   destinationMatch = latestRecord?.destination? === destination;
+        // }
 
         if(title != 'All' && title != ''){
           titleMatch = user.title === title;
@@ -360,7 +359,7 @@ const Page = () => {
                           <div className="font-medium">{user.firstName} {user.lastName}</div>
                         </TableCell>
                         <TableCell className="hidden sm:table-cell">
-                          <div className="font-medium">{user.role.name}</div>
+                          {/* <div className="font-medium">{user.role.name}</div> */}
                         </TableCell>
                         <TableCell className="hidden sm:table-cell">
                           <Badge className="text-xs" variant="secondary">
@@ -369,7 +368,7 @@ const Page = () => {
                         </TableCell>
                         <TableCell className="hidden sm:table-cell">
                           <Badge className="text-xs" variant="secondary">
-                            {user?.record?.[0]?.destination?.name ?? ''}
+                            {/* {user?.record?.[0]?.destination?.name ?? ''} */}
                           </Badge>
                         </TableCell>
                         <TableCell className="hidden md:table-cell">

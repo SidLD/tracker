@@ -75,6 +75,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials, req) {
         try {
+
           if(credentials?.username && credentials.password){
               const user = await api.authentication.login({username: credentials?.username , password: credentials?.password})
               if(user){

@@ -1,5 +1,5 @@
 import { History } from "./history";
-import { Role } from "./role";
+import { StatusType } from "./status";
 
 export type User = {
     id: string,
@@ -9,7 +9,7 @@ export type User = {
     lastName: string,
     updatedAt: Date,
     record: History[] | undefined
-    role: Role
+    statustype: StatusType
 }
 
 export const EducationalTitles: string[] = [
@@ -21,8 +21,9 @@ export const EducationalTitles: string[] = [
     'EPS - MAPEH',
     'EPS - ArPa',
     'EPS - TLE',
+    'EPS - PERSONNEL',
     'PS - ESP',
     'CID Chief',
-    'PSD',
+    'PSDS',
     'STAFF'
   ];

@@ -12,13 +12,19 @@ getHistory: protectedProcedure
                 userId: input.userId
             },
             include:{
-                statustype: {
+                locations: {
                     select: {
                         id: true,
-                        name: true
-                    }
+                        name: true,
+                        location: {
+                            select: {
+                                id: true,
+                                name: true
+                            }
+                        }
+                    },
                 },
-                destination: {
+                user: {
                     select: {
                         id: true,
                         name: true
@@ -31,34 +37,56 @@ getHistory: protectedProcedure
         })
         return records;
     }),
-ceateHistory: protectedProcedure
-    .input(z.object({ 
-        user : z.string(),
+ createHistory: protectedProcedure
+    .input(
+      z.object({
+        user: z.string(),
         dateFrom: z.string(),
-        dateTo : z.string(),
-        status: z.number(), 
-        location : z.number()
-    }))
-    .mutation(async({ ctx, input }) => {
-        console.log('test',input)
-        return await ctx.db.records.create({
-            data: {
-                userId: input.user,
-                dateFrom: new Date(input.dateFrom),
-                dateTo: new Date(input.dateTo),
-                statusTypeId: input.status,
-                destinationId:input.location
-            }
-        })
+        dateTo: z.string(),
+        location: z.array(
+          z.object({
+            id: z.number(), 
+            name: z.string(),
+          })
+        ),
+        purpose: z.string(),
+        documentTracker: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.db.records.create({
+        data: {
+          userId: input.user,
+          dateFrom: new Date(input.dateFrom),
+          dateTo: new Date(input.dateTo),
+          purpose: input.purpose,
+          documentTracker: input.documentTracker,
+          locations: {
+            connect: input.location.map((loc) => ({ id: loc.id })), 
+          },
+        },
+        include: {
+          locations: true, 
+        },
+      });
     }),
 updateHistory: protectedProcedure
-    .input(z.object({ 
-        id: z.any(),
-        dateFrom: z.string(),
-        dateTo : z.string(),
-        status: z.number(), 
-        location : z.number()
-    }))
+.input(
+    z.object({
+        id: z.string(),
+      user: z.string(),
+      dateFrom: z.string(),
+      dateTo: z.string(),
+      location: z.array(
+        z.object({
+          id: z.number(), // Ensure this ID corresponds to the location table's ID field
+          name: z.string(),
+        })
+      ),
+      purpose: z.string(),
+      documentTracker: z.string(),
+    })
+  )
     .mutation(async({ ctx, input }) => {
         const roleFound = await ctx.db.records.findFirst({
             where: { id: input.id}
@@ -69,17 +97,22 @@ updateHistory: protectedProcedure
         return await ctx.db.records.update({
             where: {id: input.id},
             data: {
-               dateFrom: input.dateFrom,
-               dateTo: input.dateTo,
-               statusTypeId: input.status,
-               destinationId: input.location
+                dateFrom: new Date(input.dateFrom),
+                dateTo: new Date(input.dateTo),
+                purpose: input.purpose,
+                documentTracker: input.documentTracker,
+                locations: {
+                  connect: input.location.map((loc) => ({ id: loc.id })), 
+                },
             }
         })
     }),
 deleteHistory: protectedProcedure
-    .input(z.object({ 
-        id: z.string(),    
-    }))
+.input(
+    z.object({
+        id: z.string(),
+    })
+  )
     .mutation(async({ ctx, input }) => {
         const roleFound = await ctx.db.records.findFirst({
             where: { id: input.id}

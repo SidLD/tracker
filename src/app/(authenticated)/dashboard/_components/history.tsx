@@ -42,7 +42,7 @@ export const History = () => {
                   <CreditCard className="h-4 w-4" />
                   Location
                 </dt>
-                <dd>{data?.destination?.name}</dd>
+                {/* <dd>{data?.destination?.name}</dd> */}
               </div>
             </dl>
           </div>
