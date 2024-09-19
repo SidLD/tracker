@@ -87,7 +87,7 @@ const Page = () => {
 
     return users.filter(user => {
         const latestRecord = user?.record?.[0] ?? null;
-        let destinationMatch = true
+        const destinationMatch = true
         let statusMatch = true
         let titleMatch = true
         let nameMatch = true;

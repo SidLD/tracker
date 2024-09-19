@@ -172,7 +172,7 @@ export const History = () => {
         await onUpdateHistory(payload);
         form.reset()
     } catch (err) {
-      
+      console.log(err)
     } 
   }
 
@@ -182,7 +182,8 @@ export const History = () => {
       setSelectedDestination([])
       form.reset()
     } catch (error) {
-      
+      console.log(error)
+      { /* No Comment */}
     }
   }
 
@@ -378,7 +379,7 @@ export const History = () => {
       const matchesDateFrom = entryDateFrom >= filterDate.from && entryDateFrom <= filterDate.to;
 
       const matchesDateTo = entryDateTo <= filterDate.to && entryDateTo >= filterDate.from;
-      
+
       return matchesSearch && matchesDateFrom && matchesDateTo
     })
    }else{
