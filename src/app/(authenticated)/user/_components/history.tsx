@@ -144,6 +144,9 @@ export const History = () => {
         })
         if(response.status == 200){
           await getHistory()
+          toast({
+            title: "Success Create"
+          })
         }
       }else{
         const response = await _axios.post('/api/history', {
@@ -157,6 +160,9 @@ export const History = () => {
         if(response.status == 200){
           await getHistory()
           setSelectedHistory(null)
+          toast({
+            title: "Success Update"
+          })
         }
        
       }
@@ -168,7 +174,6 @@ export const History = () => {
   const onSubmit = async (data: HistoryEntry) => {
     try {
       const payload = {...data, dateFrom: date?.from, dateTo: date?.to, date: undefined, location: selectdDestination, user: selectUser}
-        console.log(payload)
         await onUpdateHistory(payload);
         form.reset()
     } catch (err) {
@@ -273,14 +278,14 @@ export const History = () => {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          initialFocus
-                          mode="range"
-                          defaultMonth={date.from}
-                          selected={date}
-                          onSelect={setDate}
-                          {...field}
-                        />
+                      <Calendar
+                        initialFocus
+                        mode="range"
+                        defaultMonth={date?.from || new Date()} // Use current date if date.from is null
+                        selected={date || { from: null, to: null }} // Provide a fallback object if date is null
+                        onSelect={setDate}
+                        {...field}
+                      />
                       </PopoverContent>
                     </Popover>
                   </div>
@@ -371,16 +376,8 @@ export const History = () => {
       const matchesSearch = 
         entry.purpose.toLowerCase().includes(searchTerm.toLowerCase()) ||
         entry.documentTracker.toLowerCase().includes(searchTerm.toLowerCase())
-      
-      
-      const entryDateFrom = new Date(entry.dateFrom)
-      const entryDateTo = new Date(entry.dateTo)
-      
-      const matchesDateFrom = entryDateFrom >= filterDate.from && entryDateFrom <= filterDate.to;
 
-      const matchesDateTo = entryDateTo <= filterDate.to && entryDateTo >= filterDate.from;
-
-      return matchesSearch && matchesDateFrom && matchesDateTo
+      return matchesSearch
     })
    }else{
     return history;
@@ -423,40 +420,6 @@ export const History = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-sm"
         />
-        <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            id="date"
-            variant="outline"
-            className={`w-[300px] justify-start text-left font-normal ${
-              !filterDate && "text-muted-foreground"
-            }`}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {filterDate?.from ? (
-              filterDate.to ? (
-                <>
-                  {format(filterDate.from, "LLL dd, y")} -{" "}
-                  {format(filterDate.to, "LLL dd, y")}
-                </>
-              ) : (
-                format(filterDate.from, "LLL dd, y")
-              )
-            ) : (
-              <span>Pick a date</span>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            initialFocus
-            mode="range"
-            defaultMonth={date.from}
-            selected={filterDate}
-            onSelect={setFilterDate}
-          />
-        </PopoverContent>
-        </Popover>
       </div>
       <Table>
         <TableHeader>

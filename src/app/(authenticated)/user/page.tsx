@@ -596,9 +596,9 @@ const Page = () => {
             <Table>
         <TableHeader>
           <TableRow>
-            {/* <TableHead className="hidden sm:table-cell">
+            <TableHead className="hidden sm:table-cell">
               Position/Designation
-            </TableHead> */}
+            </TableHead>
             <TableHead className="hidden sm:table-cell">
               Name
             </TableHead>
@@ -612,9 +612,9 @@ const Page = () => {
         <TableBody>
           {paginatedUsers.map((user, index) => (
             <TableRow key={index} className="bg-accent">
-              {/* <TableCell>
+              <TableCell>
                 <div className="font-medium">{user.title}</div>
-              </TableCell> */}
+              </TableCell>
               <TableCell className="hidden sm:table-cell">
                 <div className="font-medium">{user.firstName} {user.lastName}</div>
               </TableCell>
