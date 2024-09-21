@@ -14,6 +14,8 @@ export type User = {
 
 export const EducationalTitles: string[] = [
     'All',
+    'EPS I',
+    'EPS II',
     'EPS - English',
     'EPS - Filipino',
     'EPS - Math',
@@ -21,6 +23,7 @@ export const EducationalTitles: string[] = [
     'EPS - MAPEH',
     'EPS - ArPa',
     'EPS - TLE',
+    'EPS - ESP',
     'EPS - PERSONNEL',
     'PS - ESP',
     'CID Chief',
