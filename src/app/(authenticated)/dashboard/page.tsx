@@ -1,477 +1,287 @@
-'use client';
+'use client'
 
-import React, { useEffect, useState, useMemo } from 'react';
-import { CreditCard, Users2, ChevronLeft, ChevronRight, CalendarIcon, MapPinIcon, UserIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import { addDays, format } from 'date-fns';
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Separator } from '@/components/ui/separator';
-import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DatePickerWithRange } from "@/components/ui/date-picker-with-range";
-import { HistoryContext } from "@/lib/context";
-import { History } from "./_components/history";
-import { Graph } from "./_components/graph";
-import _axios from '@/lib/axios';
+import { useState, useMemo, useEffect } from 'react'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import { Graph } from './_components/graph'
+import _axios from '@/lib/axios'
+
+interface Destination {
+  name: string
+  id: number
+}
 
 interface Location {
-  id: number;
-  name: string;
-  location: {
-    id: number;
-    name: string;
-  };
+  name: string
+  destinations: Destination[]
 }
 
-interface TravelRequest {
-  id: string;
-  userId: string;
-  dateFrom: string;
-  dateTo: string;
-  purpose: string;
-  fundSource: string | null;
-  documentTracker: string;
-  createdAt: string;
-  updatedAt: string;
-  locations: Location[];
+interface TravelRecord {
+  id: string
+  userId: string
+  dateFrom: string
+  dateTo: string
+  purpose: string
+  fundSource: string | null
+  documentTracker: string
+  createdAt: string
+  updatedAt: string
   user: {
-    id: string;
-    name: string | null;
-  };
+    firstName: string
+    lastName: string
+    statustype: {
+      name: string
+      id: number
+    }
+    title: string
+  }
+  locations: {
+    location: Location
+  }[]
 }
 
-interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  title: string;
-  record?: Array<{ statustype?: { name: string } }>;
+const ITEMS_PER_PAGE = 10
+
+function Dropdown({ options, value, onChange, placeholder }: {
+  options: string[]
+  value: string
+  onChange: (value: string) => void
+  placeholder: string
+}) {
+  return (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger asChild>
+        <Button variant="outline" className="w-[180px] justify-between">
+          {value || placeholder}
+          <ChevronDown className="ml-2 h-4 w-4" />
+        </Button>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content className="w-[180px] bg-white rounded-md shadow-lg p-1">
+        <DropdownMenu.Item 
+          className="px-2 py-1 text-sm cursor-pointer hover:bg-gray-100 rounded"
+          onSelect={() => onChange('')}
+        >
+          All
+        </DropdownMenu.Item>
+        {options.map((option) => (
+          <DropdownMenu.Item 
+            key={option} 
+            className="px-2 py-1 text-sm cursor-pointer hover:bg-gray-100 rounded"
+            onSelect={() => onChange(option)}
+          >
+            {option}
+          </DropdownMenu.Item>
+        ))}
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>
+  )
 }
 
-interface Status {
-  id: string;
-  name: string;
-}
-
-const itemsPerPage = 10;
-
-const Page: React.FC = () => {
-  const [selectUser, setSelectUser] = useState<User | null>(null);
-  const [status, setStatus] = useState<Status[]>([]);
-  const [location, setLocation] = useState<Location[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [history, setHistory] = useState<TravelRequest[]>([]);
-  const [sortColumn, setSortColumn] = useState<keyof TravelRequest>('dateFrom');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
-  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
-  const [dateRange, setDateRange] = useState<{ from: Date | null; to: Date | null }>({
-    from: addDays(new Date(), -30),
-    to: new Date(),
-  });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [analysis, setAnalysis] = useState<{ userCount: number; locationCount: number }>({
-    userCount: 0,
-    locationCount: 0
-  });
-
-  const travelRequests: TravelRequest[] = [
-    {
-      "id": "cm18t8vyr000di8nt5n06f26r",
-      "userId": "cm18m2eza00012z2l4dp3l2ko",
-      "dateFrom": "2024-08-20T04:47:12.447Z",
-      "dateTo": "2024-09-19T04:47:12.447Z",
-      "purpose": "asdasdasd",
-      "fundSource": null,
-      "documentTracker": "asdasdsadsa",
-      "createdAt": "2024-09-19T04:47:25.395Z",
-      "updatedAt": "2024-09-19T04:47:25.395Z",
-      "locations": [
-        {
-          "id": 2,
-          "name": "Oquendo 3",
-          "location": {
-            "id": 2,
-            "name": "CALBAYOG 2"
-          }
-        }
-      ],
-      "user": {
-        "id": "cm18m2eza00012z2l4dp3l2ko",
-        "name": "John Doe"
-      }
-    },
-    {
-      "id": "cm18t52sj000bi8ntqdngje28",
-      "userId": "cm18m2eza00012z2l4dp3l2ko",
-      "dateFrom": "2024-08-31T16:00:00.000Z",
-      "dateTo": "2024-09-11T16:00:00.000Z",
-      "purpose": "test",
-      "fundSource": null,
-      "documentTracker": "asdsad",
-      "createdAt": "2024-09-19T04:44:27.548Z",
-      "updatedAt": "2024-09-19T06:03:55.538Z",
-      "locations": [
-        {
-          "id": 1,
-          "name": "DESTINATION 6",
-          "location": {
-            "id": 1,
-            "name": "CALBAYOG 1"
-          }
-        },
-        {
-          "id": 2,
-          "name": "Oquendo 3",
-          "location": {
-            "id": 2,
-            "name": "CALBAYOG 2"
-          }
-        }
-      ],
-      "user": {
-        "id": "cm18m2eza00012z2l4dp3l2ko",
-        "name": "Jane Smith"
-      }
-    }
-  ];
-
-  const handleSort = (column: keyof TravelRequest) => {
-    if (column === sortColumn) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortColumn(column);
-      setSortDirection('asc');
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'MMM d, yyyy');
-  };
-
-  const filteredAndSortedRequests = useMemo(() => {
-    return travelRequests
-      .filter(request => {
-        const matchesSearch = 
-          request.purpose.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          request.documentTracker.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          request.user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          request.locations.some(loc => 
-            loc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            loc.location.name.toLowerCase().includes(searchTerm.toLowerCase())
-          );
-        const matchesUser = !selectedUser || request.user.id === selectedUser;
-        const matchesLocation = !selectedLocation || request.locations.some(loc => 
-          loc.id.toString() === selectedLocation || loc.location.id.toString() === selectedLocation
-        );
-        const matchesDateRange = 
-          (!dateRange.from || new Date(request.dateFrom) >= dateRange.from) &&
-          (!dateRange.to || new Date(request.dateTo) <= dateRange.to);
-        
-        return matchesSearch && matchesUser && matchesLocation && matchesDateRange;
-      })
-      .sort((a:any, b:any) => {
-        const aValue = a[sortColumn];
-        const bValue = b[sortColumn];
-        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
-      });
-  }, [travelRequests, searchTerm, selectedUser, selectedLocation, dateRange, sortColumn, sortDirection]);
-
-  const paginatedRequests = filteredAndSortedRequests.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const totalPages = Math.ceil(filteredAndSortedRequests.length / itemsPerPage);
-
-  const uniqueUsers = Array.from(new Set(travelRequests.map(req => req.user.id)));
-  const uniqueLocations = Array.from(new Set(travelRequests.flatMap(req => 
-    req.locations.map(loc => loc.location.id)
-  )));
-
-  const getUsers = async () => {
-    try {
-      const response = await fetch('/api/user');
-      if (!response.ok) throw new Error('Failed to fetch users');
-      const data = await response.json();
-      setUsers(data);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  };
-
-  const getLocation = async () => {
-    try {
-      const response = await fetch('/api/location');
-      if (!response.ok) throw new Error('Failed to fetch locations');
-      setLocation(await response.json());
-    } catch (error) {
-      console.error("Error fetching locations:", error);
-    }
-  };
-
-  const getStatus = async () => {
-    try {
-      const response = await fetch('/api/status');
-      if (!response.ok) throw new Error('Failed to fetch statuses');
-      setStatus(await response.json());
-    } catch (error) {
-      console.error("Error fetching statuses:", error);
-    }
-  };
-
-  const getHistory = async () => {
-    try {
-      if (selectUser?.id) {
-        const response = await _axios.get('/api/history', {
-          params: { userId: selectUser.id }
-        });
-        setHistory(response.data);
-      }
-    } catch (error) {
-      console.error('Error fetching history:', error);
-    }
-  };
-
-  const getAnalysis = async () => {
-    try {
-      const response = await _axios.get('/api/analysis');
-      setAnalysis(response.data);
-    } catch (error) {
-      console.error('Error fetching analysis:', error);
-    }
-  };
+export default function TravelRecordsTable() {
+  const [records, setRecords] = useState<TravelRecord[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [locationFilter, setLocationFilter] = useState('')
+  const [purposeFilter, setPurposeFilter] = useState('')
+  const [documentTrackerFilter, setDocumentTrackerFilter] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    const init = async () => {
-      await Promise.all([
-        getUsers(),
-        getLocation(),
-        getStatus(),
-        getAnalysis(),
-      ]);
-    };
-    init().catch(err => console.error(err));
-  }, []);
-
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
+    const fetchRecords = async () => {
+      setIsLoading(true)
+      try {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const formattedMonth = `${year}-${month}`;
+  
+        const { data } = await _axios.get('/api/adminRecords', {
+          params: {
+            month: formattedMonth
+          }
+        });
+        setRecords(data)
+      } catch (error) {
+        console.error('Error fetching records:', error)
+      } finally {
+        setIsLoading(false)
+      }
     }
-  };
+
+    fetchRecords()
+  }, [])
+
+  const filteredRecords = useMemo(() => {
+    return records.filter(record => {
+      const locationMatch = record.locations.some(loc => 
+        loc.location.name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      const userMatch = `${record.user.firstName} ${record.user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
+      const statusMatch = statusFilter ? record.user.statustype.name === statusFilter : true
+      const locationFilterMatch = locationFilter ? record.locations.some(loc => loc.location.name === locationFilter) : true
+      const purposeMatch = purposeFilter ? record.purpose.toLowerCase().includes(purposeFilter.toLowerCase()) : true
+      const documentTrackerMatch = documentTrackerFilter ? record.documentTracker.toLowerCase().includes(documentTrackerFilter.toLowerCase()) : true
+
+      return (locationMatch || userMatch) && statusMatch && locationFilterMatch && purposeMatch && documentTrackerMatch
+    })
+  }, [records, searchTerm, statusFilter, locationFilter, purposeFilter, documentTrackerFilter])
+
+  const pageCount = Math.ceil(filteredRecords.length / ITEMS_PER_PAGE)
+  const paginatedRecords = filteredRecords.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  )
+
+  const uniqueStatuses = Array.from(new Set(records.map(record => record.user.statustype.name)))
+  const uniqueLocations = Array.from(new Set(records.flatMap(record => record.locations.map(loc => loc.location.name))))
+  const uniquePurposes = Array.from(new Set(records.map(record => record.purpose)))
+
+  const totalTravels = records.length
+  const activeTravels = records.filter(record => new Date(record.dateTo) >= new Date()).length
+  const completedTravels = records.filter(record => new Date(record.dateTo) < new Date()).length
+  const uniqueDestinations = new Set(records.flatMap(record => record.locations.flatMap(loc => loc.location.destinations.map(dest => dest.name)))).size
+
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
 
   return (
-    <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
-      <div className="container mx-auto p-4 col-span-2">
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
-              <UserIcon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{filteredAndSortedRequests.length}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Earliest Travel Date</CardTitle>
-              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatDate(filteredAndSortedRequests.reduce((min, req) => req.dateFrom < min ? req.dateFrom : min, filteredAndSortedRequests[0]?.dateFrom || ''))}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Destinations</CardTitle>
-              <MapPinIcon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {new Set(filteredAndSortedRequests.flatMap(req => req.locations.map(loc => loc.location.name))).size}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+    <main className='grid grid-cols-3'>
+        <div className="space-y-6 col-span-2 px-2">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Travels</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totalTravels}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Active Travels</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{activeTravels}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Completed Travels</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{completedTravels}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Unique Destinations</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{uniqueDestinations}</div>
+              </CardContent>
+            </Card>
+          </div>
 
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Filters and Search</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-2">
               <Input
-                placeholder="Search..."
+                placeholder="Search location or user..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-sm"
               />
-              {/* <Select value={selectedUser || ''} onValueChange={setSelectedUser}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select User" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Users</SelectItem>
-                  {uniqueUsers.map(userId => (
-                    <SelectItem key={userId} value={userId}>
-                      {travelRequests.find(req => req.user.id === userId)?.user.name || userId}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select> */}
-              {/* <Select value={selectedLocation || ''} onValueChange={setSelectedLocation}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Location" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Locations</SelectItem>
-                  {uniqueLocations.map(locId => (
-                    <SelectItem key={locId} value={locId.toString()}>
-                      {travelRequests.find(req => req.locations.some(loc => loc.location.id === locId))?.locations[0].location.name || locId}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select> */}
+              <Dropdown
+                options={uniqueStatuses}
+                value={statusFilter}
+                onChange={setStatusFilter}
+                placeholder="Filter by status"
+              />
+              <Dropdown
+                options={uniqueLocations}
+                value={locationFilter}
+                onChange={setLocationFilter}
+                placeholder="Filter by location"
+              />
+              <Dropdown
+                options={uniquePurposes}
+                value={purposeFilter}
+                onChange={setPurposeFilter}
+                placeholder="Filter by purpose"
+              />
+              <Input
+                placeholder="Filter by document tracker..."
+                value={documentTrackerFilter}
+                onChange={(e) => setDocumentTrackerFilter(e.target.value)}
+                className="max-w-sm"
+              />
             </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Travel Requests</CardTitle>
-          </CardHeader>
-          <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[100px]" onClick={() => handleSort('dateFrom')}>Date From</TableHead>
-                  <TableHead className="w-[100px]" onClick={() => handleSort('dateTo')}>Date To</TableHead>
-                  <TableHead onClick={() => handleSort('purpose')}>Purpose</TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Locations</TableHead>
-                  <TableHead className="w-[100px]" onClick={() => handleSort('documentTracker')}>Document Tracker</TableHead>
-                  <TableHead onClick={() => handleSort('userId')}>User</TableHead>
+                  <TableHead>Date From</TableHead>
+                  <TableHead>Date To</TableHead>
+                  <TableHead>Purpose</TableHead>
+                  <TableHead>Document Tracker</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedRequests.map((request) => (
-                  <TableRow key={request.id}>
-                    <TableCell>{formatDate(request.dateFrom)}</TableCell>
-                    <TableCell>{formatDate(request.dateTo)}</TableCell>
-                    <TableCell>{request.purpose}</TableCell>
+                {paginatedRecords.map((record) => (
+                  <TableRow key={record.id}>
+                    <TableCell>{`${record.user.firstName} ${record.user.lastName}`}</TableCell>
+                    <TableCell>{record.user.title}</TableCell>
+                    <TableCell>{record.user.statustype.name}</TableCell>
                     <TableCell>
-                      {request.locations.map((location) => (
-                        <Badge key={location.id} variant="secondary" className="mr-1 mb-1">
-                          {location.name} ({location.location.name})
-                        </Badge>
-                      ))}
+                      {record.locations.map(loc => loc.location.name).join(', ')}
                     </TableCell>
-                    <TableCell>{request.documentTracker}</TableCell>
-                    <TableCell>{request.user.name || request.userId}</TableCell>
+                    <TableCell>{new Date(record.dateFrom).toLocaleDateString()}</TableCell>
+                    <TableCell>{new Date(record.dateTo).toLocaleDateString()}</TableCell>
+                    <TableCell>{record.purpose}</TableCell>
+                    <TableCell>{record.documentTracker}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-            <div className="flex items-center justify-between mt-4">
-              <Button
-                variant="outline"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeftIcon className="h-4 w-4 mr-2" />
-                Previous
-              </Button>
-              <span>
-                Page {currentPage} of {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                Next
-                <ChevronRightIcon className="h-4 w-4 ml-2" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      <div >
-        <Card className="overflow-hidden">
-          <CardHeader className="flex flex-row items-start bg-muted/50">
-            <div className="grid gap-0.5">
-              <CardTitle className="group flex items-center gap-2 text-lg">
-                User Detail
-              </CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="p-6 text-sm">
-            <HistoryContext.Provider value={{ user: selectUser, status, location, getHistory, history }}> 
-              <History />
-            </HistoryContext.Provider>
-          </CardContent>
-          <CardFooter className="flex flex-row items-center border-t bg-muted/50 px-6 py-3">
-            <Pagination className="ml-auto mr-0 w-auto">
-              <PaginationContent>
-                <PaginationItem>
-                  <Button size="icon" variant="outline" className="h-6 w-6">
-                    <ChevronLeft className="h-3.5 w-3.5" />
-                    <span className="sr-only">Previous Order</span>
-                  </Button>
-                </PaginationItem>
-                <PaginationItem>
-                  <Button size="icon" variant="outline" className="h-6 w-6">
-                    <ChevronRight className="h-3.5 w-3.5" />
-                    <span className="sr-only">Next Order</span>
-                  </Button>
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </CardFooter>
-        </Card>
-        <Separator className="my-5" />
-        <Card className="overflow-hidden">
-          <CardHeader className="flex flex-row items-start bg-muted/50">
-            <div className="grid gap-0.5">
-              <CardTitle className="group flex items-center gap-2 text-lg">
-                Calendar
-              </CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="p-6 text-sm">
-            <Graph />
-          </CardContent>
-          <CardFooter className="flex flex-row items-center border-t bg-muted/50 px-6 py-3">
-            <Pagination className="ml-auto mr-0 w-auto">
-              <PaginationContent>
-                <PaginationItem>
-                  <Button size="icon" variant="outline" className="h-6 w-6">
-                    <ChevronLeft className="h-3.5 w-3.5" />
-                    <span className="sr-only">Previous Order</span>
-                  </Button>
-                </PaginationItem>
-                <PaginationItem>
-                  <Button size="icon" variant="outline" className="h-6 w-6">
-                    <ChevronRight className="h-3.5 w-3.5" />
-                    <span className="sr-only">Next Order</span>
-                  </Button>
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </CardFooter>
-        </Card>
-      </div>
-    </main>
-  );
-}
 
-export default Page;
+            <div className="flex items-center justify-between">
+              <div>
+                Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredRecords.length)} of {filteredRecords.length} records
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div>Page {currentPage} of {pageCount}</div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setCurrentPage(page => Math.min(pageCount, page + 1))}
+                  disabled={currentPage === pageCount}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className='col-span-1'>
+          <Graph />
+        </div>
+    </main>
+  )
+}

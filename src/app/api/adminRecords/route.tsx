@@ -6,22 +6,10 @@ export async function GET(request: NextRequest) {
     try {
     const url = new URL(request.url);
       const month = url.searchParams.get('month') || '';
-      const data = await api.analysis.getMonthRecords({month})
+      const data = await api.analysis.records({month})
       return NextResponse.json(data);
     } catch (error) {
       console.error('Error fetching month records:', error);
       return NextResponse.json({ error: 'Failed to fetch records' }, { status: 500 });
     }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-  const url = new URL(request.url);
-    const month = url.searchParams.get('month') || '';
-    const data = await api.analysis.records({month})
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Error fetching month records:', error);
-    return NextResponse.json({ error: 'Failed to fetch records' }, { status: 500 });
-  }
 }
