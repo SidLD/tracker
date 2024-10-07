@@ -343,7 +343,6 @@ const Page = () => {
   </Form>
   }
 
-
   const onDeleteUser = async () => {
     try {
       const response = await fetch('/api/user', {
@@ -371,7 +370,6 @@ const Page = () => {
       console.log(error)
     }
   }
-
 
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(users.length / itemsPerPage);

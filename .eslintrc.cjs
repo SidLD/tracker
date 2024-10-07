@@ -26,6 +26,7 @@ const config = {
     "@typescript-eslint/prefer-nullish-coalescing": "warn",
     "@typescript-eslint/consistent-type-imports": "warn",
     "@typescript-eslint/no-empty-interface": "warn",
+    "@typescript-eslint/ban-types": "off",
     "@typescript-eslint/no-unused-vars": [
       "warn",
       {
