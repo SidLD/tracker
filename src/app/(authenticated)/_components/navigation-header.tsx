@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { DropdownMenuContent } from '@radix-ui/react-dropdown-menu'
-import { CircleUser, Home, Settings, User } from 'lucide-react'
+import { CircleUser, History, Home, Settings, User } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import React from 'react'
@@ -11,6 +11,7 @@ import React from 'react'
 const links = [
     { to: "/dashboard", label: "Dashboard" , icon: <Home />},
     { to: "/user", label: "User" , icon: <User />},
+    { to: "/history", label: "History" , icon: <History />},
     { to: "/setting", label: "Setting" , icon: <Settings />},
   ]
 

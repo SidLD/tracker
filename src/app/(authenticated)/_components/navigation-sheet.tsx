@@ -10,6 +10,7 @@ import React from 'react'
 
 const links = [
     { to: "/dashboard", label: "Dashboard" , icon: <Home />},
+    { to: "/history", label: "History" , icon: <User />},
     { to: "/user", label: "User" , icon: <User />},
     { to: "/setting", label: "Setting" , icon: <Settings />},
   ]
