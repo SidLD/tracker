@@ -9,7 +9,7 @@ getHistory: protectedProcedure
     .query(async({ ctx, input }) => {
         const records = await ctx.db.records.findMany({
             where: {
-                userId: input.userId
+                userId: input.userId == 'all' ? undefined: input.userId
             },
             include:{
                 locations: {

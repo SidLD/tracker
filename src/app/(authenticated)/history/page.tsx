@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react'
-import React, { useContext, useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import _axios from '@/lib/axios'
 import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -10,17 +10,14 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { type DateRange } from 'react-day-picker'
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Separator } from '@radix-ui/react-dropdown-menu'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
-import {  format, subDays } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { Card, CardHeader, CardTitle, CardFooter, CardContent } from '@/components/ui/card'
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
-import { HistoryContext, HistoryContextType } from '@/lib/context'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { Destination, Location } from '@/lib/types/location'
-import { cn } from '@/lib/utils'
+import { Destination } from '@/lib/types/location'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from '@/components/ui/table'
@@ -280,6 +277,7 @@ const Page = () => {
             <SelectValue placeholder="Select a User" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="all">All</SelectItem>
             {users.map((user: User, index: number) => (
               <SelectItem key={index} value={user.id as unknown as string}>
                 {user.firstName}
@@ -431,6 +429,7 @@ const Page = () => {
                 />
 
                 <FormField
+                    
                         control={form.control}
                         name="purpose"
                         render={({ field }) => (
